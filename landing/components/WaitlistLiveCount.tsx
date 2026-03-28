@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 const POLL_MS = 30_000;
 const REFRESH_EVENT = "reanimate-waitlist-count-refresh";
@@ -17,23 +17,21 @@ export default function WaitlistLiveCount({
   className?: string;
 }) {
   const [count, setCount] = useState<number | null>(null);
-  const [unavailable, setUnavailable] = useState(false);
+  /** false until the first fetch finishes (success or fail). */
+  const [settled, setSettled] = useState(false);
 
   const load = useCallback(async () => {
     try {
       const r = await fetch("/api/waitlist/count", { cache: "no-store" });
       const data = (await r.json()) as { count?: number; error?: string };
-      if (!r.ok) {
-        setUnavailable(true);
-        setCount(null);
+      setSettled(true);
+      if (r.ok && typeof data.count === "number") {
+        setCount(data.count);
         return;
       }
-      if (typeof data.count === "number") {
-        setCount(data.count);
-        setUnavailable(false);
-      }
+      setCount(null);
     } catch {
-      setUnavailable(true);
+      setSettled(true);
       setCount(null);
     }
   }, []);
@@ -51,28 +49,26 @@ export default function WaitlistLiveCount({
     };
   }, [load]);
 
-  if (unavailable || count === null) {
-    return (
-      <span
-        className={`inline-flex items-center justify-center font-[family-name:var(--px)] text-[11px] text-[var(--ink-mid)] opacity-60 ${className}`}
-        aria-live="polite"
-      >
-        <span
-          className="inline-block h-2.5 w-20 max-w-full rounded bg-black/[0.08] align-middle"
-          aria-hidden
-        />
+  let label: ReactNode;
+  if (!settled) {
+    label = <span className="opacity-70">Loading live count…</span>;
+  } else if (count === null) {
+    label = (
+      <span>
+        <span className="text-[var(--ink)]">Live</span>
+        {" — "}
+        join the waitlist below
       </span>
     );
-  }
-
-  if (count === 0) {
-    return (
-      <span
-        className={`inline-flex items-center gap-2 justify-center font-[family-name:var(--px)] text-[11px] text-[var(--ink-mid)] ${className}`}
-        aria-live="polite"
-      >
-        <LiveDot />
-        <span>Be the first on the waitlist</span>
+  } else if (count === 0) {
+    label = <span>Be the first on the waitlist</span>;
+  } else {
+    label = (
+      <span>
+        <strong className="text-[var(--ink)] font-normal tabular-nums">
+          {count.toLocaleString()}
+        </strong>
+        {count === 1 ? " person" : " people"} on the waitlist
       </span>
     );
   }
@@ -82,22 +78,11 @@ export default function WaitlistLiveCount({
       className={`inline-flex items-center gap-2 justify-center font-[family-name:var(--px)] text-[11px] text-[var(--ink-mid)] ${className}`}
       aria-live="polite"
     >
-      <LiveDot />
-      <span>
-        <strong className="text-[var(--ink)] font-normal tabular-nums">
-          {count.toLocaleString()}
-        </strong>
-        {count === 1 ? " person" : " people"} on the waitlist
+      <span className="waitlist-live-dot" aria-hidden>
+        <span className="waitlist-live-dot__ping" />
+        <span className="waitlist-live-dot__solid" />
       </span>
-    </span>
-  );
-}
-
-function LiveDot() {
-  return (
-    <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
-      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-35" />
-      <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-600" />
+      {label}
     </span>
   );
 }

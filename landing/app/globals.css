@@ -10,6 +10,43 @@ body {
   margin: 0;
 }
 
+/* Waitlist “live” pulse — plain CSS so it always shows in production (no Tailwind JIT gap) */
+@keyframes waitlist-dot-ping {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.waitlist-live-dot {
+  position: relative;
+  display: flex;
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+}
+
+.waitlist-live-dot__ping {
+  position: absolute;
+  display: inline-flex;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background-color: rgb(16, 185, 129);
+  opacity: 0.4;
+  animation: waitlist-dot-ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.waitlist-live-dot__solid {
+  position: relative;
+  display: inline-flex;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: rgb(5, 150, 105);
+}
+
 /* PixelBlast container */
 .pixel-blast-container {
   width: 100%;
