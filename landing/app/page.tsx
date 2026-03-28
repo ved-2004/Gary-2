@@ -67,7 +67,7 @@ export default function Home() {
               <br />
               Dwell time, baskets, a clean A/B verdict—before you touch the floor.
             </p>
-            <p className="mt-2 mb-6 mx-auto max-w-[520px]">
+            <p className="mt-2 mb-3 mx-auto max-w-[520px]">
               <WaitlistLiveCount className="w-full" />
             </p>
             <button

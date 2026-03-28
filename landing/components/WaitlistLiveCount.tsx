@@ -17,7 +17,6 @@ export default function WaitlistLiveCount({
   className?: string;
 }) {
   const [count, setCount] = useState<number | null>(null);
-  /** false until the first fetch finishes (success or fail). */
   const [settled, setSettled] = useState(false);
 
   const load = useCallback(async () => {
@@ -51,15 +50,9 @@ export default function WaitlistLiveCount({
 
   let label: ReactNode;
   if (!settled) {
-    label = <span className="opacity-70">Loading live count…</span>;
+    label = <span className="opacity-50">…</span>;
   } else if (count === null) {
-    label = (
-      <span>
-        <span className="text-[var(--ink)]">Live</span>
-        {" — "}
-        join the waitlist below
-      </span>
-    );
+    label = <span>Add your email below to join the waitlist.</span>;
   } else if (count === 0) {
     label = <span>Be the first on the waitlist</span>;
   } else {
@@ -75,13 +68,9 @@ export default function WaitlistLiveCount({
 
   return (
     <span
-      className={`inline-flex items-center gap-2 justify-center font-[family-name:var(--px)] text-[11px] text-[var(--ink-mid)] ${className}`}
+      className={`inline-flex items-center justify-center font-[family-name:var(--px)] text-[11px] text-[var(--ink-mid)] ${className}`}
       aria-live="polite"
     >
-      <span className="waitlist-live-dot" aria-hidden>
-        <span className="waitlist-live-dot__ping" />
-        <span className="waitlist-live-dot__solid" />
-      </span>
       {label}
     </span>
   );
