@@ -1,0 +1,16 @@
+customer_id,name,need_1,need_1_product_type,shopping_list_1,need_2,need_2_product_type,shopping_list_2
+CUST001,Olivia Turner,Healthy snacks,snacks,Trail Mix 14 oz|Granola Bars 8ct|Rice Cakes lightly salted,Skincare,household,Dish Soap 24 oz|All-Purpose Cleaner spray|Paper Towels 6 roll
+CUST002,James Carter,Electronics,household,AA Batteries 8-pack|Paper Towels 6 roll|Facial Tissue 3-box,Home office,household,Laundry Detergent 64 load|Trash Bags 13 gal 40ct|All-Purpose Cleaner spray
+CUST003,Sophia Nguyen,Organic produce,produce,Baby Spinach 5 oz|Honeycrisp Apples lb|Broccoli crown lb,Baby care,household,Facial Tissue 3-box|Dish Soap 24 oz|Paper Towels 6 roll
+CUST004,Michael Rivera,Budget groceries,pantry,Long Grain Rice 2 lb|Penne Pasta 16 oz|Chicken Broth 32 oz,Pharmacy,household,Facial Tissue 3-box|All-Purpose Cleaner spray|Dish Soap 24 oz
+CUST005,Ava Patel,Affordable beauty,household,Facial Tissue 3-box|Dish Soap 24 oz|All-Purpose Cleaner spray,Supplements,breakfast,Oats old-fashioned 42 oz|Instant Oatmeal 10-pack|Granola clusters 12 oz
+CUST006,Noah Johnson,Low-sugar foods,produce,Carrots 2 lb bag|Broccoli crown lb|Baby Spinach 5 oz,Vitamins,breakfast,Instant Oatmeal 10-pack|Granola clusters 12 oz|Oats old-fashioned 42 oz
+CUST007,Emma Williams,School supplies,household,AA Batteries 8-pack|Paper Towels 6 roll|Trash Bags 13 gal 40ct,Household goods,household,Dish Soap 24 oz|Laundry Detergent 64 load|All-Purpose Cleaner spray
+CUST008,Liam Brown,Medical supplies,household,Facial Tissue 3-box|Paper Towels 6 roll|All-Purpose Cleaner spray,Convenience foods,frozen,Frozen Pizza cheese|Chicken Nuggets 24 oz|Waffles 10ct
+CUST009,Isabella Garcia,Organic baby food,produce,Baby Spinach 5 oz|Strawberries 1 lb|Honeycrisp Apples lb,Cleaning products,household,All-Purpose Cleaner spray|Dish Soap 24 oz|Laundry Detergent 64 load
+CUST010,William Davis,Protein snacks,snacks,Trail Mix 14 oz|Granola Bars 8ct|Pretzels 16 oz,Sports gear,beverages,Sports Drink 8-pack|Sparkling Water 8-pack|Cold Brew Coffee 32 oz
+CUST011,Mia Hernandez,Budget groceries,pantry,Long Grain Rice 2 lb|Beans black 15 oz can|Penne Pasta 16 oz,Kids essentials,household,Paper Towels 6 roll|Facial Tissue 3-box|Dish Soap 24 oz
+CUST012,Benjamin Lee,Coffee,breakfast,Coffee Ground 12 oz|Cold Brew Coffee 32 oz|Oats old-fashioned 42 oz,Tech accessories,household,AA Batteries 8-pack|All-Purpose Cleaner spray|Paper Towels 6 roll
+CUST013,Charlotte Wilson,Premium groceries,deli,Rotisserie Chicken whole|Roast Beef sliced lb|Swiss Cheese sliced lb,Wellness products,produce,Baby Spinach 5 oz|Strawberries 1 lb|Avocado each
+CUST014,Elijah Martinez,Quick meals,frozen,Frozen Pizza cheese|Chicken Nuggets 24 oz|Mixed Vegetables 12 oz,Beverages,beverages,Sparkling Water 8-pack|Iced Tea gallon|Orange Juice 52 oz
+CUST015,Amelia Thompson,Organic produce,produce,Baby Spinach 5 oz|Honeycrisp Apples lb|Broccoli crown lb,Pet supplies,household,Paper Towels 6 roll|Trash Bags 13 gal 40ct|All-Purpose Cleaner spray
