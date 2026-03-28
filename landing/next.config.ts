@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Three.js + postprocessing ship modern ESM; transpiling avoids broken prod bundles.
-  transpilePackages: ["three", "postprocessing"],
+  /* config options here */
 };
 
 export default nextConfig;
