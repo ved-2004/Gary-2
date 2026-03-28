@@ -152,6 +152,9 @@ body {
   inset: 0;
   z-index: 0;
   opacity: 0.7;
+  width: 100%;
+  /* Backup if absolute + % height resolves to 0 before layout on some clients */
+  min-height: max(520px, 70vh);
 }
 
 .ld-hero-content {
