@@ -152,6 +152,18 @@ body {
   inset: 0;
   z-index: 0;
   opacity: 0.7;
+  /* Soft fallback if WebGL fails or isn’t available (still looks on-brand) */
+  background:
+    radial-gradient(
+      ellipse 100% 85% at 50% 30%,
+      rgba(177, 158, 239, 0.35),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 70% 50% at 50% 75%,
+      rgba(124, 95, 214, 0.15),
+      transparent 55%
+    );
 }
 
 .ld-hero-content {

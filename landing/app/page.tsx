@@ -49,6 +49,7 @@ export default function Home() {
             speed={0.5}
             edgeFade={0.25}
             transparent
+            autoPauseOffscreen={false}
           />
         </div>
 

@@ -406,8 +406,14 @@ const PixelBlast = ({
         canvas,
         antialias,
         alpha: true,
-        powerPreference: "high-performance",
+        /* "high-performance" often fails on remote / low-GPU servers; default is safer */
+        powerPreference: "default",
+        failIfMajorPerformanceCaveat: false,
+        preserveDrawingBuffer: false,
       });
+      if (!renderer.getContext()) {
+        throw new Error("WebGL context could not be created");
+      }
       renderer.domElement.style.width = "100%";
       renderer.domElement.style.height = "100%";
       renderer.setPixelRatio(1);
