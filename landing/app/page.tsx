@@ -4,6 +4,7 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import WaitlistModal from "@/components/WaitlistModal";
+import WaitlistLiveCount from "@/components/WaitlistLiveCount";
 
 const PixelBlast = dynamic(() => import("@/components/PixelBlast"), {
   ssr: false,
@@ -19,23 +20,8 @@ export default function Home() {
         onClose={() => setWaitlistOpen(false)}
       />
 
-      <nav className="ld-nav">
-        <div className="ld-nav-pill">
-          <span className="ld-nav-wordmark">ReAnimate.live</span>
-          <div className="ld-nav-right">
-            <button
-              type="button"
-              className="ld-nav-enter border-0 cursor-pointer font-inherit"
-              onClick={() => setWaitlistOpen(true)}
-            >
-              Get updates&nbsp;&rsaquo;
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <section className="ld-hero">
-        <div className="ld-hero-shader">
+      <div className="ld-hero-stack">
+        <div className="ld-hero-shader" aria-hidden>
           <PixelBlast
             variant="square"
             pixelSize={4}
@@ -53,27 +39,47 @@ export default function Home() {
           />
         </div>
 
-        <div className="ld-hero-content">
-          <p className="ld-hero-eyebrow">The AI-native store lab</p>
-          <h1 className="ld-hero-h1">
-            Sketch two layouts.
-            <br />
-            <span className="ld-hero-h1-em">See which one sells.</span>
-          </h1>
-          <p className="ld-hero-sub">
-            LLM shoppers roam your grid like it&apos;s opening day.
-            <br />
-            Dwell time, baskets, a clean A/B verdict—before you touch the floor.
-          </p>
-          <button
-            type="button"
-            className="ld-hero-cta border-0 cursor-pointer font-inherit"
-            onClick={() => setWaitlistOpen(true)}
-          >
-            Get updates by email&nbsp;&rsaquo;
-          </button>
-        </div>
-      </section>
+        <nav className="ld-nav">
+          <div className="ld-nav-pill">
+            <span className="ld-nav-wordmark">ReAnimate.live</span>
+            <div className="ld-nav-right">
+              <button
+                type="button"
+                className="ld-nav-enter border-0 cursor-pointer font-inherit"
+                onClick={() => setWaitlistOpen(true)}
+              >
+                Get updates&nbsp;&rsaquo;
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        <section className="ld-hero">
+          <div className="ld-hero-content">
+            <p className="ld-hero-eyebrow">The AI-native store lab</p>
+            <h1 className="ld-hero-h1">
+              Sketch two layouts.
+              <br />
+              <span className="ld-hero-h1-em">See which one sells.</span>
+            </h1>
+            <p className="ld-hero-sub">
+              LLM shoppers roam your grid like it&apos;s opening day.
+              <br />
+              Dwell time, baskets, a clean A/B verdict—before you touch the floor.
+            </p>
+            <p className="mt-2 mb-6 mx-auto max-w-[520px]">
+              <WaitlistLiveCount className="w-full" />
+            </p>
+            <button
+              type="button"
+              className="ld-hero-cta border-0 cursor-pointer font-inherit"
+              onClick={() => setWaitlistOpen(true)}
+            >
+              Get updates by email&nbsp;&rsaquo;
+            </button>
+          </div>
+        </section>
+      </div>
 
       <section className="pb-12 ld-showcase-anim max-w-[80%] mx-auto">
         <div className="relative rounded-[20px] overflow-hidden bg-[#1a1a2e] shadow-[0_2px_4px_rgba(0,0,0,0.04),0_12px_40px_rgba(0,0,0,0.10),0_0_0_1px_rgba(0,0,0,0.04)]">

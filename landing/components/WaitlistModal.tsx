@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
+import { dispatchWaitlistCountRefresh } from "@/components/WaitlistLiveCount";
 
 type WaitlistModalProps = {
   open: boolean;
@@ -12,10 +13,11 @@ export default function WaitlistModal({ open, onClose }: WaitlistModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
-    "idle"
-  );
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error" | "already"
+  >("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [alreadyMessage, setAlreadyMessage] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -33,6 +35,7 @@ export default function WaitlistModal({ open, onClose }: WaitlistModalProps) {
       setMessage("");
       setStatus("idle");
       setErrorMessage("");
+      setAlreadyMessage("");
     }
   }, [open]);
 
@@ -50,13 +53,23 @@ export default function WaitlistModal({ open, onClose }: WaitlistModalProps) {
       });
       const data = (await res.json().catch(() => ({}))) as {
         error?: string;
+        code?: string;
       };
+      if (res.status === 409 && data.code === "already_subscribed") {
+        setStatus("already");
+        setAlreadyMessage(
+          data.error ??
+            "You're already on the list with this email. No need to sign up again."
+        );
+        return;
+      }
       if (!res.ok) {
         setStatus("error");
         setErrorMessage(data.error ?? "Something went wrong");
         return;
       }
       setStatus("success");
+      dispatchWaitlistCountRefresh();
     } catch {
       setStatus("error");
       setErrorMessage("Network error — try again in a moment");
@@ -105,6 +118,25 @@ export default function WaitlistModal({ open, onClose }: WaitlistModalProps) {
               className="mt-8 font-[family-name:var(--px)] text-[12px] text-white bg-[var(--ink)] px-8 py-3 rounded-full hover:bg-[var(--accent-deep)] transition-colors"
             >
               Done
+            </button>
+          </div>
+        ) : status === "already" ? (
+          <div className="pt-2 text-center">
+            <p
+              id={titleId}
+              className="font-[family-name:var(--px)] text-[15px] text-[var(--ink)] mb-3"
+            >
+              Already signed up
+            </p>
+            <p className="font-[family-name:var(--px)] text-[12px] text-[var(--ink-mid)] leading-relaxed">
+              {alreadyMessage}
+            </p>
+            <button
+              type="button"
+              onClick={onClose}
+              className="mt-8 font-[family-name:var(--px)] text-[12px] text-white bg-[var(--ink)] px-8 py-3 rounded-full hover:bg-[var(--accent-deep)] transition-colors"
+            >
+              Got it
             </button>
           </div>
         ) : (

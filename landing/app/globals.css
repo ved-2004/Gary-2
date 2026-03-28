@@ -137,21 +137,17 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.ld-hero {
+/* Nav + hero share one PixelBlast layer (shader fills this whole block) */
+.ld-hero-stack {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: max(520px, 70vh);
-  padding: 100px var(--gutter) 80px;
-  overflow: hidden;
 }
 
-.ld-hero-shader {
+.ld-hero-stack .ld-hero-shader {
   position: absolute;
   inset: 0;
   z-index: 0;
   opacity: 0.7;
+  pointer-events: none;
   /* Soft fallback if WebGL fails or isn’t available (still looks on-brand) */
   background:
     radial-gradient(
@@ -164,6 +160,16 @@ body {
       rgba(124, 95, 214, 0.15),
       transparent 55%
     );
+}
+
+.ld-hero {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: max(520px, 70vh);
+  padding: 52px var(--gutter) 80px;
 }
 
 .ld-hero-content {
@@ -255,7 +261,7 @@ body {
 
   .ld-hero {
     min-height: max(440px, 60vh);
-    padding: 88px var(--gutter) 56px;
+    padding: 40px var(--gutter) 56px;
   }
 
   .ld-hero-sub br {
