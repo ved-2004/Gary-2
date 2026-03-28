@@ -1,0 +1,16 @@
+customer_id,name,age,gender,income_bracket,churned,marital_status,number_of_children,education_level,occupation,race,disability,height,customer_needs,purchased_alcohol_before,fitness_level,organic_preference,total_historical_purchase,avg_purchase_value
+CUST001,Olivia Turner,29,Female,Medium,No,Single,0,Bachelor's,Marketing Specialist,White,No,165,Healthy snacks|Skincare,Yes,Average,Yes,96.80,96.80
+CUST002,James Carter,41,Male,High,No,Married,2,Master's,Software Engineer,Black,No,180,Electronics|Home office,Yes,Fit,No,1450.00,178.75
+CUST003,Sophia Nguyen,35,Female,High,No,Married,1,Master's,Product Manager,Asian,No,168,Organic produce|Baby care,No,Fit,Yes,270.25,45.60
+CUST004,Michael Rivera,52,Male,Medium,Yes,Divorced,3,High School,Sales Associate,Hispanic,No,175,Budget groceries|Pharmacy,Yes,Average,No,980.40,88.20
+CUST005,Ava Patel,24,Female,Low,Yes,Single,0,Bachelor's,Customer Support,Asian,No,160,Affordable beauty|Supplements,No,Unfit,Yes,520.90,54.10
+CUST006,Noah Johnson,47,Male,Medium,No,Married,2,Bachelor's,Operations Manager,White,Yes,182,Low-sugar foods|Vitamins,Yes,Average,Yes,132.85,132.85
+CUST007,Emma Williams,33,Female,Medium,No,Married,1,Bachelor's,Teacher,Black,No,162,School supplies|Household goods,No,Average,No,301.75,84.55
+CUST008,Liam Brown,58,Male,Low,Yes,Widowed,0,High School,Retired,White,Yes,170,Medical supplies|Convenience foods,Yes,Unfit,No,0.00,0.00
+CUST009,Isabella Garcia,38,Female,Medium,No,Married,2,Master's,Nurse,Hispanic,No,167,Organic baby food|Cleaning products,No,Fit,Yes,490.35,149.95
+CUST010,William Davis,31,Male,High,No,Single,0,Bachelor's,Data Analyst,White,No,177,Protein snacks|Sports gear,Yes,Fit,Yes,2670.80,189.20
+CUST011,Mia Hernandez,45,Female,Low,Yes,Divorced,3,High School,Cashier,Hispanic,No,158,Budget groceries|Kids essentials,No,Average,No,890.20,67.10
+CUST012,Benjamin Lee,27,Male,Medium,No,Single,0,Bachelor's,Graphic Designer,Asian,No,174,Coffee|Tech accessories,Yes,Average,Yes,540.00,92.60
+CUST013,Charlotte Wilson,50,Female,High,No,Married,2,Master's,Attorney,Black,No,169,Premium groceries|Wellness products,Yes,Average,Yes,3480.90,276.70
+CUST014,Elijah Martinez,36,Male,Medium,Yes,Single,1,Bachelor's,Restaurant Manager,Hispanic,No,179,Quick meals|Beverages,Yes,Average,No,2340.65,101.15
+CUST015,Amelia Thompson,42,Female,Medium,No,Married,2,Master's,HR Manager,White,No,166,Organic produce|Pet supplies,No,Fit,Yes,875.30,163.40

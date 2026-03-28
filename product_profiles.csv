@@ -1,0 +1,106 @@
+id,product_name,product_type,company,selling_price,procurement_cost,discount_percent,margin_percent
+PRD-001,Whole Milk 1 gal,dairy,GreenPasture Farms,4.29,2.85,0,33.57
+PRD-002,2% Milk half gal,dairy,GreenPasture Farms,2.79,1.92,0,31.18
+PRD-003,Greek Yogurt 32 oz plain,dairy,Olympus Creamery,6.49,4.1,10,29.81
+PRD-004,Heavy Cream pint,dairy,Olympus Creamery,3.99,2.65,0,33.58
+PRD-005,Unsalted Butter 1 lb,dairy,Golden churn Co.,5.99,3.8,0,36.56
+PRD-006,Cheddar Block 8 oz,dairy,Golden churn Co.,4.49,2.95,15,22.7
+PRD-007,Large Eggs dozen,dairy,Valley Hen Ranch,3.89,2.4,0,38.3
+PRD-008,Sliced Whole Wheat Bread,bread,Sunrise Bakehouse,3.49,2.05,0,41.26
+PRD-009,Sourdough Loaf,bread,Sunrise Bakehouse,4.99,2.9,0,41.88
+PRD-010,Bagels 6-pack plain,bread,Metro Bagel,4.29,2.55,5,37.43
+PRD-011,Tortillas flour 10ct,bread,Rio Grande Foods,2.99,1.7,0,43.14
+PRD-012,English Muffins 6ct,bread,Metro Bagel,3.19,1.95,0,38.87
+PRD-013,Pita Bread 6-pack,bread,Rio Grande Foods,2.79,1.65,0,40.86
+PRD-014,Bananas lb,produce,TropicSource,0.69,0.42,0,39.13
+PRD-015,Roma Tomatoes lb,produce,TropicSource,1.99,1.15,0,42.21
+PRD-016,Baby Spinach 5 oz,produce,Leaf & Root,3.49,2.1,10,33.14
+PRD-017,Honeycrisp Apples lb,produce,Orchard Gate,2.49,1.55,0,37.75
+PRD-018,Avocado each,produce,TropicSource,1.29,0.78,0,39.53
+PRD-019,Carrots 2 lb bag,produce,Leaf & Root,1.99,1.05,0,47.24
+PRD-020,Broccoli crown lb,produce,Leaf & Root,2.29,1.35,0,41.05
+PRD-021,Strawberries 1 lb,produce,Orchard Gate,4.99,3.25,20,18.59
+PRD-022,Cola 12-pack cans,beverages,FizzPeak,7.99,5.4,0,32.42
+PRD-023,Sparkling Water 8-pack,beverages,Alpine Mist,4.49,2.85,0,36.53
+PRD-024,Orange Juice 52 oz,beverages,Sunrise Citrus,4.99,3.15,0,36.87
+PRD-025,Cold Brew Coffee 32 oz,beverages,Urban Roasters,6.99,4.25,15,28.47
+PRD-026,Sports Drink 8-pack,beverages,HydrateLab,8.49,5.6,0,34.04
+PRD-027,Iced Tea gallon,beverages,Porch Swing Tea,3.99,2.35,0,41.1
+PRD-028,Almond Milk 64 oz,beverages,NutHouse,4.29,2.75,0,35.9
+PRD-029,Lager 6-pack bottles,beverages,Harbor Brew Co.,10.49,7.1,0,32.32
+PRD-030,Potato Chips 8 oz,snacks,CrunchLane,4.29,2.6,0,39.39
+PRD-031,Trail Mix 14 oz,snacks,Trailhead Snacks,6.99,4.2,10,33.24
+PRD-032,Granola Bars 8ct,snacks,Morning Peak,4.99,3.05,0,38.88
+PRD-033,Chocolate Bar 3.5 oz,snacks,Cocoa & Co.,3.49,2.05,0,41.26
+PRD-034,Pretzels 16 oz,snacks,CrunchLane,3.79,2.2,0,41.95
+PRD-035,Cheese Crackers box,snacks,Pantry Pal,4.19,2.45,5,38.45
+PRD-036,Popcorn microwave 3pk,snacks,Kernel King,3.99,2.35,0,41.1
+PRD-037,Rice Cakes lightly salted,snacks,Puffed Purity,2.99,1.75,0,41.47
+PRD-038,Frozen Pizza cheese,frozen,North Pole Kitchens,6.99,4.4,0,37.05
+PRD-039,Vanilla Ice Cream 1.5 qt,frozen,Creamery Lane,5.49,3.35,15,28.21
+PRD-040,Mixed Vegetables 12 oz,frozen,Harvest Frost,2.49,1.45,0,41.77
+PRD-041,Chicken Nuggets 24 oz,frozen,North Pole Kitchens,8.99,5.75,0,36.04
+PRD-042,Waffles 10ct,frozen,Sunrise Griddle,3.99,2.25,0,43.61
+PRD-043,Berries blend frozen 12 oz,frozen,Harvest Frost,4.49,2.85,0,36.53
+PRD-044,Fish Fillets 16 oz,frozen,Blue Harbor Sea,11.99,7.8,10,27.72
+PRD-045,Long Grain Rice 2 lb,pantry,Fieldstone Mills,3.29,1.95,0,40.73
+PRD-046,Penne Pasta 16 oz,pantry,Nonna's Table,1.99,1.1,0,44.72
+PRD-047,Olive Oil 16.9 oz,pantry,Mediterra Press,8.99,5.5,0,38.82
+PRD-048,All-Purpose Flour 5 lb,pantry,Fieldstone Mills,3.99,2.35,0,41.1
+PRD-049,Chicken Broth 32 oz,pantry,Stock Pot,2.99,1.7,5,40.15
+PRD-050,Honey 16 oz squeeze,pantry,Hive & Harvest,7.49,4.6,0,38.58
+PRD-051,Peanut Butter 16 oz,pantry,NutHouse,4.99,3.05,0,38.88
+PRD-052,Beans black 15 oz can,pantry,Rio Grande Foods,1.29,0.72,0,44.19
+PRD-053,Ground Beef 80/20 lb,meat,Red Barn Ranch,5.99,3.95,0,34.06
+PRD-054,Chicken Thighs lb,meat,Valley Hen Ranch,3.49,2.15,0,38.4
+PRD-055,Pork Chops bone-in lb,meat,Red Barn Ranch,4.29,2.7,10,30.07
+PRD-056,Bacon 16 oz,meat,Red Barn Ranch,7.99,5.25,0,34.29
+PRD-057,Sirloin Steak lb,meat,Grassland Prime,12.99,8.6,0,33.8
+PRD-058,Italian Sausage lb,meat,Del Romano Meats,5.49,3.4,0,38.07
+PRD-059,Turkey Breast sliced lb,meat,Valley Hen Ranch,8.49,5.65,5,29.95
+PRD-060,Salmon Fillet lb,seafood,Blue Harbor Sea,14.99,9.85,0,34.29
+PRD-061,Shrimp peeled 16 oz,seafood,Blue Harbor Sea,16.99,10.75,15,25.56
+PRD-062,Cod Fillets lb,seafood,Atlantic Bounty,11.49,7.4,0,35.6
+PRD-063,Canned Tuna 4-pack,seafood,Atlantic Bounty,5.99,3.6,0,39.9
+PRD-064,Mussels 2 lb bag,seafood,Blue Harbor Sea,9.99,6.25,0,37.44
+PRD-065,Scallops 12 oz,seafood,Atlantic Bounty,18.99,12.4,0,34.7
+PRD-066,Dish Soap 24 oz,household,SparkleHome,3.99,2.15,0,46.12
+PRD-067,Paper Towels 6 roll,household,TimberTissue,8.99,5.7,10,29.55
+PRD-068,Laundry Detergent 64 load,household,FreshFold,14.99,9.5,0,36.62
+PRD-069,Trash Bags 13 gal 40ct,household,StrongHold,9.49,5.85,0,38.36
+PRD-070,All-Purpose Cleaner spray,household,SparkleHome,4.49,2.55,0,43.21
+PRD-071,AA Batteries 8-pack,household,VoltLine,7.99,4.9,5,35.45
+PRD-072,Facial Tissue 3-box,household,TimberTissue,5.49,3.25,0,40.8
+PRD-073,Croissants 4ct,bakery,Sunrise Bakehouse,5.99,3.45,0,42.4
+PRD-074,Chocolate Chip Cookies 12ct,bakery,Sunrise Bakehouse,4.49,2.6,0,42.09
+PRD-075,Danish Pastry 2ct,bakery,Patisserie Corner,4.29,2.4,10,37.84
+PRD-076,Birthday Cake 8 inch,bakery,Patisserie Corner,24.99,14.5,0,41.98
+PRD-077,Muffins 4ct mixed,bakery,Sunrise Bakehouse,5.49,3.1,0,43.53
+PRD-078,Brownie Bites 8ct,bakery,Patisserie Corner,5.29,3.05,0,42.34
+PRD-079,Ketchup 20 oz,condiments,Garden Gate,3.49,2.0,0,42.69
+PRD-080,Yellow Mustard 14 oz,condiments,Garden Gate,2.19,1.2,0,45.21
+PRD-081,Mayonnaise 30 oz,condiments,Creamery Lane,5.99,3.55,15,30.28
+PRD-082,Soy Sauce 15 oz,condiments,Pacific Pantry,2.99,1.65,0,44.82
+PRD-083,Hot Sauce 5 oz,condiments,Rio Grande Foods,3.99,2.2,0,44.86
+PRD-084,BBQ Sauce 18 oz,condiments,Smokestack Foods,4.49,2.65,0,40.98
+PRD-085,Maple Syrup 12 oz,condiments,Hive & Harvest,8.99,5.4,5,36.77
+PRD-086,Diced Tomatoes 14.5 oz,canned,Garden Gate,1.49,0.85,0,42.95
+PRD-087,Chicken Soup 18.8 oz,canned,Stock Pot,2.29,1.3,0,43.23
+PRD-088,Corn whole kernel 15 oz,canned,Harvest Frost,1.29,0.72,0,44.19
+PRD-089,Coconut Milk 13.5 oz,canned,Pacific Pantry,2.99,1.75,0,41.47
+PRD-090,Peaches halves 15 oz,canned,Orchard Gate,2.49,1.4,10,37.53
+PRD-091,Baked Beans 16 oz,canned,Smokestack Foods,1.99,1.1,0,44.72
+PRD-092,Corn Flakes 18 oz,breakfast,Morning Peak,4.29,2.55,0,40.56
+PRD-093,Oats old-fashioned 42 oz,breakfast,Fieldstone Mills,5.49,3.2,0,41.71
+PRD-094,Toaster Pastries 8ct,breakfast,Morning Peak,3.99,2.3,5,39.32
+PRD-095,Instant Oatmeal 10-pack,breakfast,Morning Peak,4.99,2.95,0,40.88
+PRD-096,Pancake Mix 32 oz,breakfast,Sunrise Griddle,3.79,2.15,0,43.27
+PRD-097,Granola clusters 12 oz,breakfast,Trailhead Snacks,5.99,3.5,15,31.26
+PRD-098,Coffee Ground 12 oz,breakfast,Urban Roasters,8.99,5.65,0,37.15
+PRD-099,Swiss Cheese sliced lb,deli,Del Romano Meats,10.99,7.1,0,35.4
+PRD-100,Honey Ham sliced lb,deli,Del Romano Meats,9.49,6.2,10,27.41
+PRD-101,Potato Salad lb,deli,Del Romano Meats,6.99,3.95,0,43.49
+PRD-102,Rotisserie Chicken whole,deli,Valley Hen Ranch,8.99,4.85,0,46.05
+PRD-103,Hummus 10 oz,deli,Rio Grande Foods,4.49,2.6,0,42.09
+PRD-104,Coleslaw 14 oz,deli,Del Romano Meats,3.99,2.15,5,43.28
+PRD-105,Roast Beef sliced lb,deli,Grassland Prime,13.99,9.1,0,34.95
