@@ -5,6 +5,12 @@ import {
   WAITLIST_COLLECTION,
 } from "@/lib/mongodb";
 import { validateSignupEmail } from "@/lib/validate-email";
+import {
+  ensureWaitlistEmailIndex,
+  isMongoDuplicateKeyError,
+  waitlistEmailExists,
+  WAITLIST_DUPLICATE_MESSAGE,
+} from "@/lib/waitlist-db";
 
 const MAX_MESSAGE = 4000;
 
@@ -43,13 +49,40 @@ export async function POST(request: Request) {
   try {
     const client = await getMongoClient();
     const db = client.db(GARY_DB_NAME);
-    await db.collection(WAITLIST_COLLECTION).insertOne({
-      name: nameStr,
-      email: emailStr,
-      message: messageStr || undefined,
-      createdAt: new Date(),
-      source: "reanimate-landing",
-    });
+    const col = db.collection(WAITLIST_COLLECTION);
+
+    await ensureWaitlistEmailIndex(db);
+
+    if (await waitlistEmailExists(col, emailStr)) {
+      return NextResponse.json(
+        {
+          error: WAITLIST_DUPLICATE_MESSAGE,
+          code: "already_subscribed",
+        },
+        { status: 409 }
+      );
+    }
+
+    try {
+      await col.insertOne({
+        name: nameStr,
+        email: emailStr,
+        message: messageStr || undefined,
+        createdAt: new Date(),
+        source: "reanimate-landing",
+      });
+    } catch (insertErr) {
+      if (isMongoDuplicateKeyError(insertErr)) {
+        return NextResponse.json(
+          {
+            error: WAITLIST_DUPLICATE_MESSAGE,
+            code: "already_subscribed",
+          },
+          { status: 409 }
+        );
+      }
+      throw insertErr;
+    }
   } catch (err) {
     console.error("[waitlist]", err);
     const msg =
