@@ -16,6 +16,7 @@ export default function WaitlistLiveCount({
 }: {
   className?: string;
 }) {
+  const [mounted, setMounted] = useState(false);
   const [count, setCount] = useState<number | null>(null);
   const [settled, setSettled] = useState(false);
 
@@ -36,6 +37,11 @@ export default function WaitlistLiveCount({
   }, []);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     load();
     const interval = setInterval(load, POLL_MS);
     const onRefresh = () => {
@@ -46,7 +52,18 @@ export default function WaitlistLiveCount({
       clearInterval(interval);
       window.removeEventListener(REFRESH_EVENT, onRefresh);
     };
-  }, [load]);
+  }, [mounted, load]);
+
+  const outerClass = `inline-flex items-center justify-center font-[family-name:var(--px)] text-[11px] text-[var(--ink-mid)] ${className}`;
+
+  /* SSR + first client paint: identical markup (no fetch, no client-only branches). */
+  if (!mounted) {
+    return (
+      <span className={outerClass} aria-busy="true" aria-label="Loading waitlist count">
+        <span className="opacity-50">…</span>
+      </span>
+    );
+  }
 
   let label: ReactNode;
   if (!settled) {
@@ -67,10 +84,7 @@ export default function WaitlistLiveCount({
   }
 
   return (
-    <span
-      className={`inline-flex items-center justify-center font-[family-name:var(--px)] text-[11px] text-[var(--ink-mid)] ${className}`}
-      aria-live="polite"
-    >
+    <span className={outerClass} aria-live="polite">
       {label}
     </span>
   );
