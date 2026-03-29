@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 const POLL_MS = 30_000;
-const REFRESH_EVENT = "reanimate-waitlist-count-refresh";
+const REFRESH_EVENT = "gary-2-waitlist-count-refresh";
 
 export function dispatchWaitlistCountRefresh() {
   if (typeof window !== "undefined") {

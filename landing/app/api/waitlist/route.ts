@@ -69,7 +69,7 @@ export async function POST(request: Request) {
         email: emailStr,
         message: messageStr || undefined,
         createdAt: new Date(),
-        source: "reanimate-landing",
+        source: "gary-2-landing",
       });
     } catch (insertErr) {
       if (isMongoDuplicateKeyError(insertErr)) {

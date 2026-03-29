@@ -43,7 +43,7 @@ export default function Home() {
 
         <nav className="ld-nav">
           <div className="ld-nav-pill">
-            <span className="ld-nav-wordmark">ReAnimate.live</span>
+            <span className="ld-nav-wordmark">Gary.2</span>
             <div className="ld-nav-right">
               <a href="#live-replay" className="ld-nav-link">
                 Watch replay
@@ -68,9 +68,7 @@ export default function Home() {
               <span className="ld-hero-h1-em">See which one sells.</span>
             </h1>
             <p className="ld-hero-sub">
-              LLM shoppers roam your grid like it&apos;s opening day.
-              <br />
-              Dwell time, baskets, a clean A/B verdict before you touch the floor.
+              LLM shoppers roam your grid like it&apos;s opening day. Dwell time, baskets, a clean A/B verdict before you touch the floor.
             </p>
             <p className="mx-auto mb-3 mt-2 max-w-[520px]">
               <WaitlistLiveCount className="w-full" />

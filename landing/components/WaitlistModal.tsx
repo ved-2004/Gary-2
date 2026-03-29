@@ -152,7 +152,7 @@ export default function WaitlistModal({ open, onClose }: WaitlistModalProps) {
               id={titleId}
               className="font-[family-name:var(--px)] text-[17px] text-[var(--ink)] mb-1 pr-10"
             >
-              Get updates from ReAnimate
+              Get updates from Gary.2
             </h2>
             <p className="font-[family-name:var(--px)] text-[11px] text-[var(--ink-mid)] mb-6 leading-relaxed">
               Leave your email and we&apos;ll notify you as we ship.

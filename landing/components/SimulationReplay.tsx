@@ -452,31 +452,38 @@ export default function SimulationReplay({ replays }: SimulationReplayProps) {
 
   return (
     <div className="w-full max-w-full overflow-hidden rounded-[34px] border border-black/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(245,241,234,0.95))] p-3 shadow-[0_20px_80px_rgba(17,17,17,0.1)] sm:p-5 lg:p-8">
-      <div className="max-w-3xl">
+      <div className="mx-auto max-w-3xl text-center">
         <p className="font-[family-name:var(--font-geist-pixel-square)] text-[11px] uppercase tracking-[0.18em] text-[var(--accent-deep)]">
           Replay Demo
         </p>
         <h2 className="mt-3 font-[family-name:var(--font-geist-pixel-square)] text-[clamp(24px,4vw,46px)] leading-[1.08] text-[var(--ink)]">
           Watch shoppers walk the floor.
         </h2>
-        <p className="mt-3 max-w-2xl font-[family-name:var(--font-geist-pixel-square)] text-[12px] leading-6 text-[var(--ink-mid)] sm:leading-7">
+        <p className="mx-auto mt-3 max-w-2xl font-[family-name:var(--font-geist-pixel-square)] text-[12px] leading-6 text-[var(--ink-mid)] sm:leading-7">
           Tap any shopper, scrub the timeline, and inspect the route, action,
           reasoning, and basket state.
         </p>
       </div>
 
       {hasReplayPicker ? (
-        <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+        <div className="mx-auto mt-5 w-full max-w-[28rem]">
+          <div
+            role="tablist"
+            aria-label="Replay layouts"
+            className="grid grid-cols-2 gap-2 rounded-[24px] border border-black/8 bg-white/75 p-2 shadow-[0_8px_24px_rgba(17,17,17,0.06)]"
+          >
           {replays.map((replay) => {
             const isActive = replay.id === selectedReplay.id;
             return (
               <button
                 key={replay.id}
                 type="button"
+                role="tab"
+                aria-selected={isActive}
                 onClick={() => selectReplay(replay.id)}
-                className={`shrink-0 rounded-full border px-4 py-2.5 text-left transition ${
+                className={`rounded-[18px] border px-4 py-3 text-center transition ${
                   isActive
-                    ? "border-[var(--accent-deep)] bg-[var(--accent)]/20 text-[var(--ink)] shadow-[0_8px_24px_rgba(124,95,214,0.18)]"
+                    ? "border-[var(--accent-deep)] bg-[var(--accent)]/18 text-[var(--ink)] shadow-[0_8px_24px_rgba(124,95,214,0.16)]"
                     : "border-black/10 bg-white/80 text-[var(--ink-mid)] hover:border-[var(--accent-deep)]/35 hover:text-[var(--ink)]"
                 }`}
               >
@@ -486,6 +493,7 @@ export default function SimulationReplay({ replays }: SimulationReplayProps) {
               </button>
             );
           })}
+        </div>
         </div>
       ) : null}
 

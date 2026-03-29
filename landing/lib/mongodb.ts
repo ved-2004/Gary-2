@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 
 declare global {
-  var _reanimateMongoClient: Promise<MongoClient> | undefined;
+  var _gary2MongoClient: Promise<MongoClient> | undefined;
 }
 
 function getMongoUri(): string {
@@ -15,10 +15,10 @@ export function getMongoClient(): Promise<MongoClient> {
   if (!uri) {
     throw new Error("MONGODB_URI is not configured");
   }
-  if (!global._reanimateMongoClient) {
-    global._reanimateMongoClient = new MongoClient(uri).connect();
+  if (!global._gary2MongoClient) {
+    global._gary2MongoClient = new MongoClient(uri).connect();
   }
-  return global._reanimateMongoClient;
+  return global._gary2MongoClient;
 }
 
 export const GARY_DB_NAME = "gary";

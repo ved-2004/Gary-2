@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ReAnimate.live",
+  title: "Gary.2",
   description:
-    "Sketch two retail layouts. AI shoppers walk your grid—you get dwell, baskets, and a clear A/B winner before build-out.",
+    "Gary.2 lets you sketch retail layouts, run AI shoppers through the floor, and compare which plan wins before build-out.",
 };
 
 export default function RootLayout({
