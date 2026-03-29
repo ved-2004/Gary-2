@@ -8,6 +8,8 @@ from tkinter import filedialog
 
 import pyray as pr
 from agents import Agent, AgentState, GrabbableItem, RandomAgent
+from agents_llm import LLMAgent
+from data_loader import load_customers
 
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
@@ -116,7 +118,8 @@ class Engine:
     def find_entrances(self) -> list[Shelf]:
         return [shelf for shelf in self.shelves if shelf.type == "entrance"]
 
-    def spawn_random_agents(self, count: int = RANDOM_AGENT_COUNT) -> list[RandomAgent]:
+    def spawn_random_agents(self, count: int = RANDOM_AGENT_COUNT) -> list:
+
         entrances = self.find_entrances()
         self.purchased_items = []
         self.completed_agents = []
@@ -125,9 +128,32 @@ class Engine:
             self.random_agents = []
             return self.random_agents
 
+        customers = load_customers(
+            "../data/customer_profiles.csv",
+            "../data/shopping_list.csv",
+        )
+        customer_list = list(customers.values())[:count]
+
         self.random_agents = [
-            RandomAgent(entrance.x, entrance.y, name=f"Random Agent {index}")
-            for index, entrance in enumerate(random.choices(entrances, k=count), start=1)
+            LLMAgent(
+                x=entrance.x,
+                y=entrance.y,
+                name=c["name"],
+                profile={
+                    "customer_id":        c["customer_id"],
+                    "age":                c["age"],
+                    "gender":             c["gender"],
+                    "income_bracket":     c["income_bracket"],
+                    "fitness_level":      c["fitness_level"],
+                    "organic_preference": c["organic_preference"],
+                    "customer_needs":     c["customer_needs"],
+                },
+                buying_list=c.get("buying_list", []),
+            )
+            for c, entrance in zip(
+                customer_list,
+                [entrances[i % len(entrances)] for i in range(len(customer_list))]
+            )
         ]
         return self.random_agents
 
