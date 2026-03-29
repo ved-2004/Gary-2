@@ -257,33 +257,42 @@ class LLMAgent(Agent):
                 "immediately -- this is always your highest priority."
             ),
             (
-                "2. NEVER grab items where matches_target is false unless they "
-                "genuinely align with your shopping personality above."
+                "2. Impulse and treats (matches_target is false): you MAY grab items "
+                "not on your list when they plausibly fit your shopping personality "
+                "(e.g. organic snack if you prefer organic, a splurge if you have "
+                "high spending power, something on sale if you are budget-conscious, "
+                "a comfort food if that matches your profile). Explain the impulse in "
+                "reasoning in one short clause. Do not grab random unrelated products."
             ),
             (
-                "3. Not all products may be stocked. shopping_plan.targets lists "
+                "3. Keep impulse buying reasonable: skip extras when checkout_urgency "
+                "is 'critical' or when you are almost out of iterations, unless you "
+                "are already next to checkout with your list complete."
+            ),
+            (
+                "4. Not all products may be stocked. shopping_plan.targets lists "
                 "items actually on shelves. Items under unavailable_in_store "
                 "are NOT stocked -- do not search for them."
             ),
             (
-                "4. If checkout is in allowed_actions and you have items, choose "
+                "5. If checkout is in allowed_actions and you have items, choose "
                 "checkout immediately."
             ),
             (
-                "5. If you have items in your inventory and no remaining_targets, "
+                "6. If you have items in your inventory and no remaining_targets, "
                 "navigate straight to checkout using nearest_checkout.delta "
                 "(positive delta.x = move right, positive delta.y = move down)."
             ),
             (
-                "6. When remaining_iterations is below 30% and you hold items, "
+                "7. When remaining_iterations is below 30% and you hold items, "
                 "head to checkout -- do NOT keep exploring."
             ),
             (
-                "7. If checkout_urgency is 'high' or 'critical', drop everything "
+                "8. If checkout_urgency is 'high' or 'critical', drop everything "
                 "and navigate to checkout."
             ),
             (
-                "8. Prefer moves toward unvisited tiles (lowest value in "
+                "9. Prefer moves toward unvisited tiles (lowest value in "
                 "adjacent_move_visit_counts). Avoid revisiting high-count tiles."
             ),
             "",
@@ -294,8 +303,9 @@ class LLMAgent(Agent):
                 "those shelves first."
             ),
             (
-                "- Each grabbable item has a matches_target field. Only grab "
-                "items where it is true."
+                "- Each grabbable item has matches_target: true means it is on your "
+                "remaining list. false means not on the list -- you may still grab "
+                "it as an impulse buy if it fits your personality (see strategy 2)."
             ),
             (
                 "- If a nearby shelf of type 'checkout' is visible and you have "
