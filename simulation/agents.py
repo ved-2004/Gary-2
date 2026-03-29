@@ -269,6 +269,7 @@ class Agent:
     x: int
     y: int
     name: str = ""
+    sprite_name: str = ""
     inventory: list[GrabbableItem] = field(default_factory=list)
     checked_out_items: list[GrabbableItem] = field(default_factory=list)
 

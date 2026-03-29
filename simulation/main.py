@@ -92,6 +92,8 @@ ROOT_ENV_PATH = ROOT_DIR / ".env"
 CUSTOMER_PROFILES_PATH = DATA_DIR / "customer_profiles.csv"
 SHOPPING_LIST_PATH = DATA_DIR / "shopping_list.csv"
 RESULTS_PATH = Path(__file__).resolve().parent / "results.json"
+PEOPLE_SPRITES_DIR = ROOT_DIR / "Sprites" / "PeopleSprites"
+CHECKOUT_SPRITE_PATH = ROOT_DIR / "Sprites" / "checkout.png"
 JSON_FILE_FILTERS = [("JSON files", "*.json"), ("All files", "*.*")]
 
 
@@ -238,6 +240,7 @@ class Engine:
         profiles: list[CustomerProfile],
         config: SimulationConfig,
         start_time: float,
+        sprite_names: list[str] | None = None,
     ) -> list[LLMAgent]:
         entrances = self.find_entrances()
         self.reset_simulation()
@@ -267,6 +270,11 @@ class Engine:
                 x=spawn_x,
                 y=spawn_y,
                 name=profile.name,
+                sprite_name=(
+                    self.rng.choice(sprite_names)
+                    if sprite_names
+                    else ""
+                ),
                 customer_profile=profile,
                 shopping_targets=available_targets,
                 unavailable_targets=unavailable_targets,
@@ -814,10 +822,40 @@ def get_shelf_type_color(shelf_type: str) -> pr.Color:
     return SHELF_TYPE_SHELF_COLOR
 
 
-def draw_shelf(shelf: Shelf, color: pr.Color) -> None:
+def load_checkout_texture() -> object | None:
+    if not CHECKOUT_SPRITE_PATH.exists():
+        return None
+    return pr.load_texture(str(CHECKOUT_SPRITE_PATH))
+
+
+def unload_checkout_texture(checkout_texture: object | None) -> None:
+    if checkout_texture is not None:
+        pr.unload_texture(checkout_texture)
+
+
+def draw_shelf(
+    shelf: Shelf,
+    color: pr.Color,
+    checkout_texture: object | None = None,
+) -> None:
     x = shelf.x * GRID_SIZE + SHELF_PADDING
     y = shelf.y * GRID_SIZE + SHELF_PADDING
     size = GRID_SIZE - SHELF_PADDING * 2
+    if shelf.type == "checkout" and checkout_texture is not None:
+        pr.draw_texture_pro(
+            checkout_texture,
+            pr.Rectangle(
+                0,
+                0,
+                float(checkout_texture.width),
+                float(checkout_texture.height),
+            ),
+            pr.Rectangle(float(x), float(y), float(size), float(size)),
+            pr.Vector2(0, 0),
+            0.0,
+            pr.WHITE,
+        )
+        return
     pr.draw_rectangle(x, y, size, size, color)
 
 
@@ -825,10 +863,11 @@ def draw_shelves(
     shelves: list[Shelf],
     hovered_shelf: Shelf | None = None,
     selected_shelf: Shelf | None = None,
+    checkout_texture: object | None = None,
 ) -> None:
     for shelf in shelves:
         color = get_shelf_type_color(shelf.type)
-        draw_shelf(shelf, color)
+        draw_shelf(shelf, color, checkout_texture)
         if shelf == selected_shelf:
             pr.draw_rectangle(
                 shelf.x * GRID_SIZE + SHELF_PADDING,
@@ -875,10 +914,39 @@ def draw_origin_marker() -> None:
     pr.draw_rectangle(0, 0, GRID_SIZE, GRID_SIZE, ORIGIN_MARKER_COLOR)
 
 
-def draw_agent(agent: Agent) -> None:
-    center_x = agent.x * GRID_SIZE + GRID_SIZE / 2
-    center_y = agent.y * GRID_SIZE + GRID_SIZE / 2
-    pr.draw_circle(int(center_x), int(center_y), SHOPPER_RADIUS, SHOPPER_COLOR)
+def load_agent_sprites() -> dict[str, object]:
+    textures: dict[str, object] = {}
+    if not PEOPLE_SPRITES_DIR.exists():
+        return textures
+
+    for sprite_path in sorted(PEOPLE_SPRITES_DIR.glob("*.png")):
+        textures[sprite_path.name] = pr.load_texture(str(sprite_path))
+    return textures
+
+
+def unload_agent_sprites(agent_sprites: dict[str, object]) -> None:
+    for texture in agent_sprites.values():
+        pr.unload_texture(texture)
+
+
+def draw_agent(agent: Agent, agent_sprites: dict[str, object]) -> None:
+    texture = agent_sprites.get(agent.sprite_name)
+    if texture is None:
+        center_x = agent.x * GRID_SIZE + GRID_SIZE / 2
+        center_y = agent.y * GRID_SIZE + GRID_SIZE / 2
+        pr.draw_circle(int(center_x), int(center_y), SHOPPER_RADIUS, SHOPPER_COLOR)
+        return
+
+    draw_x = float(agent.x * GRID_SIZE)
+    draw_y = float(agent.y * GRID_SIZE)
+    pr.draw_texture_pro(
+        texture,
+        pr.Rectangle(0, 0, float(texture.width), float(texture.height)),
+        pr.Rectangle(draw_x, draw_y, float(GRID_SIZE), float(GRID_SIZE)),
+        pr.Vector2(0, 0),
+        0.0,
+        pr.WHITE,
+    )
 
 
 def draw_agent_selection(agent: Agent) -> None:
@@ -1606,8 +1674,14 @@ def start_simulation(
     shopper_profiles: list[CustomerProfile],
     config: SimulationConfig,
     now: float,
+    sprite_names: list[str],
 ) -> str:
-    spawned_agents = engine.spawn_llm_agents(shopper_profiles, config, now)
+    spawned_agents = engine.spawn_llm_agents(
+        shopper_profiles,
+        config,
+        now,
+        sprite_names,
+    )
     if not spawned_agents:
         return "Simulation requires at least one entrance shelf"
 
@@ -1847,6 +1921,9 @@ def main():
     assigned_list_view = ProductListView()
     available_list_view = ProductListView()
     active_panel_shelf_key: tuple[int, int] | None = None
+    agent_sprites = load_agent_sprites()
+    sprite_names = list(agent_sprites.keys())
+    checkout_texture = load_checkout_texture()
 
     try:
         while not pr.window_should_close():
@@ -1934,6 +2011,7 @@ def main():
                                 shopper_profiles,
                                 simulation_config,
                                 time.monotonic(),
+                                sprite_names,
                             )
                         except ValueError as exc:
                             engine.reset_simulation()
@@ -2006,6 +2084,7 @@ def main():
                                     shopper_profiles,
                                     simulation_config,
                                     time.monotonic(),
+                                    sprite_names,
                                 )
                         else:
                             engine.reset_simulation()
@@ -2267,10 +2346,15 @@ def main():
             pr.begin_mode_2d(camera)
             draw_grid(GRID_SIZE, GRID_EXTENT)
             draw_origin_marker()
-            draw_shelves(shelves, hovered_shelf, selected_shelf)
+            draw_shelves(
+                shelves,
+                hovered_shelf,
+                selected_shelf,
+                checkout_texture,
+            )
             if current_mode == "simulation":
                 for agent in engine.active_agents:
-                    draw_agent(agent)
+                    draw_agent(agent, agent_sprites)
                 if selected_agent is not None:
                     draw_agent_selection(selected_agent)
             if current_mode == "layout":
@@ -2412,6 +2496,8 @@ def main():
             pr.end_drawing()
     finally:
         engine.reset_simulation()
+        unload_checkout_texture(checkout_texture)
+        unload_agent_sprites(agent_sprites)
         unload_list_view_texture(assigned_list_view)
         unload_list_view_texture(available_list_view)
         pr.close_window()
