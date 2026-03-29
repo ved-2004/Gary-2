@@ -104,6 +104,9 @@ export default function Home() {
           Join early access to test layouts, merchandising moves, and shopper
           behavior inside Gary.2 before anything goes live in the real world.
         </p>
+        <p className="mb-3 max-w-[520px]">
+          <WaitlistLiveCount className="w-full" />
+        </p>
         <button
           type="button"
           onClick={() => setWaitlistOpen(true)}

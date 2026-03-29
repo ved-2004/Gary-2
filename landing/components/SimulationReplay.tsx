@@ -5,8 +5,11 @@ import type {
   ReplayAgent,
   ReplayBounds,
   ReplayCartItem,
+  ReplayAgentSnapshot,
+  ReplayShelf,
   ReplayTrajectory,
 } from "@/lib/replay";
+import { getProductImagePath } from "@/lib/product-images";
 import {
   formatCompletionReason,
   formatCurrency,
@@ -30,6 +33,81 @@ const CELL_SIZE = 40;
 const AGENT_SIZE = 48;
 const AGENT_OFFSET = (AGENT_SIZE - CELL_SIZE) / 2;
 const PLAYBACK_SPEEDS = [1, 2, 4, 8] as const;
+const REASONING_BUBBLE_WIDTH = 228;
+const REASONING_BUBBLE_HEIGHT = 148;
+
+function getShelfProductImagePaths(shelf: ReplayShelf): string[] {
+  if (shelf.type !== "shelf" || shelf.productIds.length === 0) {
+    return [];
+  }
+
+  return shelf.productIds.flatMap((productId) => {
+    const imagePath = getProductImagePath(productId);
+    return imagePath ? [imagePath] : [];
+  });
+}
+
+function ShelfProductStack({ shelf }: { shelf: ReplayShelf }) {
+  const productImagePaths = getShelfProductImagePaths(shelf);
+  if (productImagePaths.length === 0) {
+    return null;
+  }
+
+  const x = shelf.x * CELL_SIZE + 4;
+  const y = shelf.y * CELL_SIZE + 4;
+  const size = CELL_SIZE - 8;
+  const visibleCount = Math.min(3, productImagePaths.length);
+  const iconSize = Math.min(22, Math.max(14, size * 0.62));
+
+  if (visibleCount === 1) {
+    return (
+      <image
+        href={productImagePaths[0]}
+        x={x + (size - iconSize) / 2}
+        y={y + (size - iconSize) / 2}
+        width={iconSize}
+        height={iconSize}
+        preserveAspectRatio="xMidYMid meet"
+      />
+    );
+  }
+
+  const offsetX = 6;
+  const offsetY = 4.5;
+  const baseX = x + 2;
+  const baseY = y + size - iconSize - 2;
+  const hiddenCount = productImagePaths.length - visibleCount;
+
+  return (
+    <>
+      {productImagePaths.slice(0, visibleCount).map((imagePath, index) => {
+        const remaining = visibleCount - index - 1;
+        return (
+          <image
+            key={`${shelf.x}-${shelf.y}-${imagePath}-${index}`}
+            href={imagePath}
+            x={baseX + offsetX * index}
+            y={baseY - offsetY * remaining}
+            width={iconSize}
+            height={iconSize}
+            preserveAspectRatio="xMidYMid meet"
+          />
+        );
+      })}
+      {hiddenCount > 0 ? (
+        <text
+          x={x + size - 18}
+          y={y + 12}
+          fill="rgba(17,17,17,0.72)"
+          fontFamily="var(--font-geist-pixel-square)"
+          fontSize="11"
+        >
+          +{hiddenCount}
+        </text>
+      ) : null}
+    </>
+  );
+}
 
 function getShelfColors(type: string) {
   if (type === "checkout") {
@@ -83,6 +161,123 @@ function getTrailPoints(agent: ReplayAgent, currentStep: number) {
   return points;
 }
 
+function formatReplayActionLabel(action: string | null): string | null {
+  if (!action) {
+    return null;
+  }
+
+  return action
+    .split(/[_\s]+/)
+    .filter(Boolean)
+    .map((word) => word[0]?.toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function getReasoningBubbleCopy(
+  agent: ReplayAgent,
+  snapshot: ReplayAgentSnapshot,
+  currentStep: number,
+) {
+  if (snapshot.step?.rawReasoning) {
+    return {
+      eyebrow: agent.name,
+      stepLabel: `Step ${snapshot.step.iteration}`,
+      actionLabel: formatReplayActionLabel(snapshot.step.action),
+      body: snapshot.step.rawReasoning,
+    };
+  }
+
+  if (currentStep < 0) {
+    return {
+      eyebrow: agent.name,
+      stepLabel: "Awaiting start",
+      actionLabel: null,
+      body: "Play the replay or scrub the timeline to inspect this shopper's reasoning.",
+    };
+  }
+
+  if (agent.steps.length === 0) {
+    return {
+      eyebrow: agent.name,
+      stepLabel: "No steps recorded",
+      actionLabel: null,
+      body: `This shopper never started moving. ${formatCompletionReason(agent.completionReason)}.`,
+    };
+  }
+
+  return null;
+}
+
+function getReasoningItems(snapshot: ReplayAgentSnapshot) {
+  const inventory = snapshot.step?.inventory ?? [];
+  if (inventory.length > 0) {
+    return {
+      label: "Basket",
+      items: inventory,
+    };
+  }
+
+  const checkedOutItems = snapshot.step?.checkedOutItems ?? [];
+  if (checkedOutItems.length > 0) {
+    return {
+      label: "Purchased",
+      items: checkedOutItems,
+    };
+  }
+
+  return null;
+}
+
+function ReasoningItemsRow({
+  items,
+  label,
+  maxVisible = 5,
+}: {
+  items: ReplayCartItem[];
+  label: string;
+  maxVisible?: number;
+}) {
+  if (items.length === 0) {
+    return null;
+  }
+
+  const visibleItems = items.slice(0, maxVisible);
+  const hiddenCount = items.length - visibleItems.length;
+
+  return (
+    <div className="mt-3 border-t border-black/6 pt-3">
+      <div className="font-[family-name:var(--font-geist-pixel-square)] text-[9px] uppercase tracking-[0.12em] text-black/45">
+        {label}
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        {visibleItems.map((item, index) => {
+          const imagePath = getProductImagePath(item.productId);
+          return (
+            <div
+              key={`${item.productId}-${index}`}
+              className="flex items-center rounded-full border border-black/8 bg-[#f7f3ee] p-1"
+              title={item.productName}
+            >
+              <div
+                className="h-6 w-6 shrink-0 rounded-full border border-black/8 bg-white/90 bg-center bg-no-repeat"
+                style={{
+                  backgroundImage: imagePath ? `url(${imagePath})` : undefined,
+                  backgroundSize: "16px 16px",
+                }}
+              />
+            </div>
+          );
+        })}
+        {hiddenCount > 0 ? (
+          <div className="rounded-full border border-black/8 bg-white/90 px-2 py-1 font-[family-name:var(--font-geist-pixel-square)] text-[9px] text-black/55">
+            +{hiddenCount}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function ReplayBoard({
   bounds,
   trajectory,
@@ -100,11 +295,48 @@ function ReplayBoard({
   const viewBox = `${bounds.minX * CELL_SIZE} ${bounds.minY * CELL_SIZE} ${bounds.width * CELL_SIZE} ${bounds.height * CELL_SIZE}`;
   const selectedAgent =
     trajectory.agents.find((agent) => agent.customerId === selectedAgentId) ?? null;
+  const selectedSnapshot = selectedAgent
+    ? getReplayAgentSnapshot(selectedAgent, currentStep)
+    : null;
+  const selectedReasoning = selectedAgent && selectedSnapshot
+    ? getReasoningBubbleCopy(selectedAgent, selectedSnapshot, currentStep)
+    : null;
+  const selectedReasoningItems = selectedSnapshot
+    ? getReasoningItems(selectedSnapshot)
+    : null;
   const trailPoints = selectedAgent ? getTrailPoints(selectedAgent, currentStep) : [];
+  const boardWidth = bounds.width * CELL_SIZE;
+  const boardHeight = bounds.height * CELL_SIZE;
+  const boardLeft = bounds.minX * CELL_SIZE;
+  const boardTop = bounds.minY * CELL_SIZE;
+  const bubbleCenterX = selectedSnapshot
+    ? ((selectedSnapshot.x * CELL_SIZE + CELL_SIZE / 2 - boardLeft) / boardWidth) * 100
+    : 0;
+  const bubbleCenterY = selectedSnapshot
+    ? ((selectedSnapshot.y * CELL_SIZE + CELL_SIZE / 2 - boardTop) / boardHeight) * 100
+    : 0;
+  const bubbleSide = bubbleCenterX <= 50 ? "right" : "left";
+  const bubbleVertical = bubbleCenterY >= 48 ? "above" : "below";
+  const reasoningBubbleStyle =
+    selectedSnapshot && selectedReasoning
+      ? {
+          left:
+            bubbleSide === "right"
+              ? `clamp(8px, calc(${bubbleCenterX.toFixed(2)}% + 18px), calc(100% - ${REASONING_BUBBLE_WIDTH + 8}px))`
+              : `clamp(8px, calc(${bubbleCenterX.toFixed(2)}% - ${REASONING_BUBBLE_WIDTH + 18}px), calc(100% - ${REASONING_BUBBLE_WIDTH + 8}px))`,
+          top:
+            bubbleVertical === "above"
+              ? `clamp(8px, calc(${bubbleCenterY.toFixed(2)}% - ${REASONING_BUBBLE_HEIGHT + 18}px), calc(100% - ${REASONING_BUBBLE_HEIGHT + 8}px))`
+              : `clamp(8px, calc(${bubbleCenterY.toFixed(2)}% + 18px), calc(100% - ${REASONING_BUBBLE_HEIGHT + 8}px))`,
+        }
+      : null;
+  const bubbleTailClass = `${
+    bubbleVertical === "above" ? "-bottom-1.5" : "-top-1.5"
+  } ${bubbleSide === "right" ? "left-5" : "right-5"}`;
 
   return (
     <div
-      className="w-full max-w-full overflow-hidden rounded-[28px] border border-black/10 bg-[#f6f1ea] shadow-[0_12px_50px_rgba(17,17,17,0.08)]"
+      className="relative w-full max-w-full overflow-hidden rounded-[28px] border border-black/10 bg-[#f6f1ea] shadow-[0_12px_50px_rgba(17,17,17,0.08)]"
       style={{
         aspectRatio: `${bounds.width} / ${bounds.height}`,
       }}
@@ -176,6 +408,7 @@ function ReplayBoard({
                   preserveAspectRatio="xMidYMid slice"
                 />
               ) : null}
+              <ShelfProductStack shelf={shelf} />
             </g>
           );
         })}
@@ -260,6 +493,53 @@ function ReplayBoard({
           );
         })}
       </svg>
+
+      {selectedReasoning && reasoningBubbleStyle ? (
+        <div
+          className="pointer-events-none absolute z-20 hidden w-[228px] max-w-[calc(100%-16px)] sm:block"
+          style={reasoningBubbleStyle}
+        >
+          <div className="relative overflow-hidden rounded-[22px] border border-[rgba(124,95,214,0.18)] bg-[rgba(255,255,255,0.97)] px-3 py-3 shadow-[0_18px_42px_rgba(17,17,17,0.16)] backdrop-blur-sm">
+            <div
+              className={`absolute h-3.5 w-3.5 rotate-45 border-[rgba(124,95,214,0.18)] bg-[rgba(255,255,255,0.97)] ${
+                bubbleVertical === "above" ? "border-b border-r" : "border-l border-t"
+              } ${bubbleTailClass}`}
+            />
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="font-[family-name:var(--font-geist-pixel-square)] text-[10px] uppercase tracking-[0.14em] text-[var(--accent-deep)]">
+                  {selectedReasoning.eyebrow}
+                </div>
+                <div className="mt-1 font-[family-name:var(--font-geist-sans)] text-[11px] text-black/45">
+                  {selectedReasoning.stepLabel}
+                </div>
+              </div>
+              {selectedReasoning.actionLabel ? (
+                <div className="shrink-0 rounded-full border border-black/8 bg-[rgba(124,95,214,0.09)] px-2 py-1 font-[family-name:var(--font-geist-pixel-square)] text-[9px] uppercase tracking-[0.08em] text-[var(--accent-deep)]">
+                  {selectedReasoning.actionLabel}
+                </div>
+              ) : null}
+            </div>
+            <div
+              className="mt-3 font-[family-name:var(--font-geist-sans)] text-[12px] leading-[1.45] text-black/78"
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 5,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {selectedReasoning.body}
+            </div>
+            {selectedReasoningItems ? (
+              <ReasoningItemsRow
+                items={selectedReasoningItems.items}
+                label={selectedReasoningItems.label}
+              />
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -284,12 +564,25 @@ function CartList({
           key={`${item.productName}-${index}`}
           className="rounded-2xl border border-black/8 bg-[#f7f3ee] px-3 py-3"
         >
-          <div className="font-[family-name:var(--font-geist-pixel-square)] text-[11px] text-black">
-            {item.productName}
-          </div>
-          <div className="mt-1 text-[12px] text-black/55">{item.company}</div>
-          <div className="mt-2 text-[12px] text-black/70">
-            {formatCurrency(item.sellingPrice, currency)}
+          <div className="flex items-center gap-3">
+            <div
+              className="h-10 w-10 shrink-0 rounded-xl border border-black/8 bg-white/80 bg-center bg-no-repeat shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
+              style={{
+                backgroundImage: getProductImagePath(item.productId)
+                  ? `url(${getProductImagePath(item.productId)})`
+                  : undefined,
+                backgroundSize: "24px 24px",
+              }}
+            />
+            <div className="min-w-0 flex-1">
+              <div className="font-[family-name:var(--font-geist-pixel-square)] text-[11px] text-black">
+                {item.productName}
+              </div>
+              <div className="mt-1 text-[12px] text-black/55">{item.company}</div>
+              <div className="mt-2 text-[12px] text-black/70">
+                {formatCurrency(item.sellingPrice, currency)}
+              </div>
+            </div>
           </div>
         </div>
       ))}
@@ -444,6 +737,13 @@ export default function SimulationReplay({ replays }: SimulationReplayProps) {
   const selectedAgentPurchases = selectedSnapshot?.step?.checkedOutItems ?? [];
   const selectedAgentTargets = selectedAgent?.shoppingTargets ?? [];
   const selectedUnavailableTargets = selectedAgent?.unavailableTargets ?? [];
+  const selectedReasoning =
+    selectedAgent && selectedSnapshot
+      ? getReasoningBubbleCopy(selectedAgent, selectedSnapshot, currentStep)
+      : null;
+  const selectedReasoningItems = selectedSnapshot
+    ? getReasoningItems(selectedSnapshot)
+    : null;
   const selectedStatus = selectedAgent
     ? getAgentStatusLabel(selectedAgent, currentStep)
     : null;
@@ -507,6 +807,44 @@ export default function SimulationReplay({ replays }: SimulationReplayProps) {
             selectedAgentId={selectedAgentId}
             onSelectAgent={setSelectedAgentId}
           />
+
+          {selectedReasoning ? (
+            <div className="sm:hidden rounded-[22px] border border-[rgba(124,95,214,0.16)] bg-[rgba(255,255,255,0.92)] p-3 shadow-[0_12px_28px_rgba(17,17,17,0.1)]">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-[family-name:var(--font-geist-pixel-square)] text-[9px] uppercase tracking-[0.14em] text-[var(--accent-deep)]">
+                    {selectedReasoning.eyebrow}
+                  </div>
+                  <div className="mt-1 font-[family-name:var(--font-geist-sans)] text-[10px] text-black/45">
+                    {selectedReasoning.stepLabel}
+                  </div>
+                </div>
+                {selectedReasoning.actionLabel ? (
+                  <div className="shrink-0 rounded-full border border-black/8 bg-[rgba(124,95,214,0.09)] px-2 py-1 font-[family-name:var(--font-geist-pixel-square)] text-[8px] uppercase tracking-[0.08em] text-[var(--accent-deep)]">
+                    {selectedReasoning.actionLabel}
+                  </div>
+                ) : null}
+              </div>
+              <div
+                className="mt-2 font-[family-name:var(--font-geist-sans)] text-[11px] leading-[1.4] text-black/74"
+                style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                {selectedReasoning.body}
+              </div>
+              {selectedReasoningItems ? (
+                <ReasoningItemsRow
+                  items={selectedReasoningItems.items}
+                  label={selectedReasoningItems.label}
+                  maxVisible={4}
+                />
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="rounded-[28px] border border-black/8 bg-white/85 p-4 shadow-[0_10px_36px_rgba(17,17,17,0.08)] sm:p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
