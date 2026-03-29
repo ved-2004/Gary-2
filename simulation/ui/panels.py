@@ -1,5 +1,4 @@
 import math
-
 import pyray as pr
 
 from agents import LLMAgent
@@ -30,9 +29,11 @@ from ui.theme import (
     PRODUCT_SECTION_HEADER_HEIGHT,
 )
 
+PRODUCT_SEARCH_BOX_HEIGHT = 36
+
 
 def get_shelf_type_button_rects(panel_rect: pr.Rectangle) -> dict[str, pr.Rectangle]:
-    button_y = panel_rect.y + 84
+    button_y = panel_rect.y + 132
     button_width = (panel_rect.width - PRODUCT_PANEL_PADDING * 2 - BUTTON_GAP * 2) / 3
     start_x = panel_rect.x + PRODUCT_PANEL_PADDING
     return {
@@ -55,6 +56,28 @@ def get_shelf_type_button_rects(panel_rect: pr.Rectangle) -> dict[str, pr.Rectan
 def get_available_products(all_products: list[Product], shelf: Shelf) -> list[Product]:
     assigned_product_ids = {product.id for product in shelf.products}
     return [product for product in all_products if product.id not in assigned_product_ids]
+
+
+def get_panel_products(
+    products: list[Product],
+    search_query: str = "",
+) -> list[Product]:
+    sorted_products = sorted(
+        products,
+        key=lambda product: (
+            product.product_name.casefold(),
+            product.company.casefold(),
+            product.id,
+        ),
+    )
+    normalized_query = search_query.strip().casefold()
+    if not normalized_query:
+        return sorted_products
+    return [
+        product
+        for product in sorted_products
+        if normalized_query in product.product_name.casefold()
+    ]
 
 
 def get_product_panel_rect(screen_width: int, screen_height: int) -> pr.Rectangle:
@@ -112,6 +135,15 @@ def get_product_panel_sections(
         half_height - PRODUCT_SECTION_HEADER_HEIGHT,
     )
     return top_list_rect, bottom_list_rect
+
+
+def get_product_search_rect(panel_rect: pr.Rectangle) -> pr.Rectangle:
+    return pr.Rectangle(
+        panel_rect.x + PRODUCT_PANEL_PADDING,
+        panel_rect.y + 206,
+        panel_rect.width - PRODUCT_PANEL_PADDING * 2,
+        PRODUCT_SEARCH_BOX_HEIGHT,
+    )
 
 
 def format_currency(amount: float, currency_code: str) -> str:
@@ -291,6 +323,37 @@ def draw_product_list_view(
     )
 
 
+def draw_product_search_box(
+    panel_rect: pr.Rectangle,
+    search_query: str,
+) -> None:
+    search_rect = get_product_search_rect(panel_rect)
+    pr.draw_text(
+        "Search by name",
+        int(search_rect.x),
+        int(search_rect.y - 24),
+        PANEL_HINT_FONT_SIZE,
+        pr.GRAY,
+    )
+    pr.draw_rectangle_rec(search_rect, pr.fade(BUTTON_COLOR, 0.25))
+    pr.draw_rectangle_lines(
+        int(search_rect.x),
+        int(search_rect.y),
+        int(search_rect.width),
+        int(search_rect.height),
+        BUTTON_BORDER_COLOR,
+    )
+    search_text = search_query if search_query else "Type to filter products"
+    search_color = BUTTON_TEXT_COLOR if search_query else pr.GRAY
+    pr.draw_text(
+        search_text,
+        int(search_rect.x + 10),
+        int(search_rect.y + 7),
+        PANEL_HINT_FONT_SIZE,
+        search_color,
+    )
+
+
 def draw_product_panel(
     panel_rect: pr.Rectangle,
     shelf: Shelf,
@@ -300,6 +363,7 @@ def draw_product_panel(
     currency_code: str,
     assigned_list_view: ProductListView,
     available_list_view: ProductListView,
+    search_query: str = "",
 ) -> None:
     pr.draw_rectangle_rec(panel_rect, pr.fade(pr.RAYWHITE, 0.96))
     pr.draw_rectangle_lines(
@@ -333,23 +397,6 @@ def draw_product_panel(
         PANEL_BODY_FONT_SIZE,
         pr.GRAY,
     )
-    if is_editable:
-        pr.draw_text(
-            "Click type buttons or move products",
-            text_x,
-            header_y + 144,
-            PANEL_HINT_FONT_SIZE,
-            pr.GRAY,
-        )
-    else:
-        pr.draw_text(
-            "Hover preview",
-            text_x,
-            header_y + 144,
-            PANEL_HINT_FONT_SIZE,
-            pr.GRAY,
-        )
-
     type_button_rects = get_shelf_type_button_rects(panel_rect)
     for shelf_type, button_rect in type_button_rects.items():
         draw_button(
@@ -358,6 +405,8 @@ def draw_product_panel(
             is_active=shelf.type == shelf_type,
             is_hovered=pr.check_collision_point_rec(mouse_position, button_rect),
         )
+
+    draw_product_search_box(panel_rect, search_query)
 
     top_list_rect, bottom_list_rect = get_product_panel_sections(panel_rect)
     top_section = pr.Rectangle(
@@ -388,10 +437,14 @@ def draw_product_panel(
         BUTTON_TEXT_COLOR,
     )
 
-    available_products = get_available_products(all_products, shelf)
+    assigned_products = get_panel_products(shelf.products, search_query)
+    available_products = get_panel_products(
+        get_available_products(all_products, shelf),
+        search_query,
+    )
     hovered_assigned_product = get_hovered_product_in_list(
         top_list_rect,
-        shelf.products,
+        assigned_products,
         assigned_list_view.scroll_offset,
         mouse_position,
     )
@@ -405,7 +458,7 @@ def draw_product_panel(
     draw_product_list_view(
         top_list_rect,
         assigned_list_view,
-        shelf.products,
+        assigned_products,
         "Click a product below to add it" if is_editable else "No products assigned",
         hovered_assigned_product,
         currency_code,

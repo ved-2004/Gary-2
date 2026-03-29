@@ -70,6 +70,7 @@ from ui.panels import (
     draw_product_panel,
     get_available_products,
     get_hovered_product_in_list,
+    get_panel_products,
     get_product_list_content_height,
     get_product_panel_rect,
     get_product_panel_sections,
@@ -146,6 +147,7 @@ def main() -> None:
     selected_agent_id: str | None = None
     assigned_list_view = ProductListView()
     available_list_view = ProductListView()
+    product_search_query = ""
     active_panel_shelf_key: tuple[int, int] | None = None
     agent_sprites = load_agent_sprites()
     sprite_names = list(agent_sprites.keys())
@@ -236,6 +238,8 @@ def main() -> None:
                 clicked_load_replay = True
 
             if clicked_button is not None:
+                if clicked_button != "products":
+                    product_search_query = ""
                 current_mode = clicked_button
                 selection_start = None
                 selection_end = None
@@ -289,6 +293,7 @@ def main() -> None:
                         status_message = "Product load canceled"
                 except (OSError, ValueError, KeyError, TypeError) as exc:
                     status_message = f"Failed to load products: {exc}"
+                product_search_query = ""
                 selection_start = None
                 selection_end = None
                 selection_mode = None
@@ -325,6 +330,7 @@ def main() -> None:
                         engine.shelves = shelves
                         selected_shelf = None
                         selected_agent_id = None
+                        product_search_query = ""
                         active_panel_shelf_key = None
                         assigned_list_view.scroll_offset = 0.0
                         available_list_view.scroll_offset = 0.0
@@ -353,6 +359,7 @@ def main() -> None:
                         status_message = "Layout load canceled"
                 except (OSError, ValueError, KeyError, TypeError) as exc:
                     status_message = f"Failed to load layout: {exc}"
+                product_search_query = ""
                 selection_start = None
                 selection_end = None
                 selection_mode = None
@@ -428,6 +435,46 @@ def main() -> None:
                 available_list_view.scroll_offset = 0.0
                 active_panel_shelf_key = panel_shelf_key
 
+            panel_assigned_products: list[Product] = []
+            panel_available_products: list[Product] = []
+            if panel_shelf is not None:
+                search_query = product_search_query if current_mode == "products" else ""
+                panel_assigned_products = get_panel_products(
+                    panel_shelf.products,
+                    search_query,
+                )
+                panel_available_products = get_panel_products(
+                    get_available_products(products, panel_shelf),
+                    search_query,
+                )
+
+            if current_mode == "products" and selected_shelf is not None and not ctrl_down:
+                updated_search_query = product_search_query
+                if pr.is_key_pressed(pr.KEY_BACKSPACE) and updated_search_query:
+                    updated_search_query = updated_search_query[:-1]
+                elif pr.is_key_pressed(pr.KEY_ESCAPE) and updated_search_query:
+                    updated_search_query = ""
+
+                while True:
+                    codepoint = pr.get_char_pressed()
+                    if codepoint == 0:
+                        break
+                    if 32 <= codepoint <= 126:
+                        updated_search_query += chr(codepoint)
+
+                if updated_search_query != product_search_query:
+                    product_search_query = updated_search_query[:60]
+                    assigned_list_view.scroll_offset = 0.0
+                    available_list_view.scroll_offset = 0.0
+                    panel_assigned_products = get_panel_products(
+                        selected_shelf.products,
+                        product_search_query,
+                    )
+                    panel_available_products = get_panel_products(
+                        get_available_products(products, selected_shelf),
+                        product_search_query,
+                    )
+
             if (
                 current_mode in {"products", "simulation"}
                 and panel_shelf is not None
@@ -438,7 +485,7 @@ def main() -> None:
                     assigned_list_view.scroll_offset = clamp_scroll_offset(
                         assigned_list_view.scroll_offset,
                         top_list_rect.height,
-                        get_product_list_content_height(panel_shelf.products),
+                        get_product_list_content_height(panel_assigned_products),
                     )
                     mouse_wheel = 0
                 elif pr.check_collision_point_rec(mouse_position, bottom_list_rect):
@@ -446,9 +493,7 @@ def main() -> None:
                     available_list_view.scroll_offset = clamp_scroll_offset(
                         available_list_view.scroll_offset,
                         bottom_list_rect.height,
-                        get_product_list_content_height(
-                            get_available_products(products, panel_shelf)
-                        ),
+                        get_product_list_content_height(panel_available_products),
                     )
                     mouse_wheel = 0
 
@@ -575,7 +620,7 @@ def main() -> None:
 
                 hovered_assigned_product = get_hovered_product_in_list(
                     top_list_rect,
-                    selected_shelf.products,
+                    panel_assigned_products,
                     assigned_list_view.scroll_offset,
                     mouse_position,
                 )
@@ -584,10 +629,9 @@ def main() -> None:
                     panel_click_handled = True
 
                 if not panel_click_handled:
-                    available_products = get_available_products(products, selected_shelf)
                     hovered_available_product = get_hovered_product_in_list(
                         bottom_list_rect,
-                        available_products,
+                        panel_available_products,
                         available_list_view.scroll_offset,
                         mouse_position,
                     )
@@ -851,6 +895,7 @@ def main() -> None:
                     product_currency,
                     assigned_list_view,
                     available_list_view,
+                    product_search_query if current_mode == "products" else "",
                 )
             elif current_mode == "products":
                 pr.draw_text(
