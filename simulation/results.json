@@ -1,0 +1,464 @@
+{
+  "agents": [
+    {
+      "name": "Random Agent 3",
+      "items_purchased": [
+        {
+          "product_id": "PRD-021",
+          "product_name": "Strawberries 1 lb",
+          "product_type": "produce",
+          "company": "Orchard Gate",
+          "selling_price": 4.99,
+          "procurement_cost": 3.25,
+          "discount_percent": 20.0,
+          "margin_percent": 18.59,
+          "shelf_x": 12,
+          "shelf_y": 4
+        }
+      ]
+    },
+    {
+      "name": "Random Agent 6",
+      "items_purchased": [
+        {
+          "product_id": "PRD-014",
+          "product_name": "Bananas lb",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 0.69,
+          "procurement_cost": 0.42,
+          "discount_percent": 0.0,
+          "margin_percent": 39.13,
+          "shelf_x": 12,
+          "shelf_y": 7
+        }
+      ]
+    },
+    {
+      "name": "Random Agent 8",
+      "items_purchased": [
+        {
+          "product_id": "PRD-018",
+          "product_name": "Avocado each",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.29,
+          "procurement_cost": 0.78,
+          "discount_percent": 0.0,
+          "margin_percent": 39.53,
+          "shelf_x": 12,
+          "shelf_y": 3
+        },
+        {
+          "product_id": "PRD-020",
+          "product_name": "Broccoli crown lb",
+          "product_type": "produce",
+          "company": "Leaf & Root",
+          "selling_price": 2.29,
+          "procurement_cost": 1.35,
+          "discount_percent": 0.0,
+          "margin_percent": 41.05,
+          "shelf_x": 12,
+          "shelf_y": 3
+        },
+        {
+          "product_id": "PRD-016",
+          "product_name": "Baby Spinach 5 oz",
+          "product_type": "produce",
+          "company": "Leaf & Root",
+          "selling_price": 3.49,
+          "procurement_cost": 2.1,
+          "discount_percent": 10.0,
+          "margin_percent": 33.14,
+          "shelf_x": 12,
+          "shelf_y": 5
+        }
+      ]
+    },
+    {
+      "name": "Random Agent 13",
+      "items_purchased": [
+        {
+          "product_id": "PRD-014",
+          "product_name": "Bananas lb",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 0.69,
+          "procurement_cost": 0.42,
+          "discount_percent": 0.0,
+          "margin_percent": 39.13,
+          "shelf_x": 12,
+          "shelf_y": 7
+        }
+      ]
+    },
+    {
+      "name": "Random Agent 5",
+      "items_purchased": [
+        {
+          "product_id": "PRD-015",
+          "product_name": "Roma Tomatoes lb",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.99,
+          "procurement_cost": 1.15,
+          "discount_percent": 0.0,
+          "margin_percent": 42.21,
+          "shelf_x": 12,
+          "shelf_y": 6
+        },
+        {
+          "product_id": "PRD-014",
+          "product_name": "Bananas lb",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 0.69,
+          "procurement_cost": 0.42,
+          "discount_percent": 0.0,
+          "margin_percent": 39.13,
+          "shelf_x": 12,
+          "shelf_y": 7
+        },
+        {
+          "product_id": "PRD-016",
+          "product_name": "Baby Spinach 5 oz",
+          "product_type": "produce",
+          "company": "Leaf & Root",
+          "selling_price": 3.49,
+          "procurement_cost": 2.1,
+          "discount_percent": 10.0,
+          "margin_percent": 33.14,
+          "shelf_x": 12,
+          "shelf_y": 5
+        },
+        {
+          "product_id": "PRD-015",
+          "product_name": "Roma Tomatoes lb",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.99,
+          "procurement_cost": 1.15,
+          "discount_percent": 0.0,
+          "margin_percent": 42.21,
+          "shelf_x": 12,
+          "shelf_y": 6
+        }
+      ]
+    },
+    {
+      "name": "Random Agent 1",
+      "items_purchased": [
+        {
+          "product_id": "PRD-018",
+          "product_name": "Avocado each",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.29,
+          "procurement_cost": 0.78,
+          "discount_percent": 0.0,
+          "margin_percent": 39.53,
+          "shelf_x": 12,
+          "shelf_y": 3
+        },
+        {
+          "product_id": "PRD-018",
+          "product_name": "Avocado each",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.29,
+          "procurement_cost": 0.78,
+          "discount_percent": 0.0,
+          "margin_percent": 39.53,
+          "shelf_x": 12,
+          "shelf_y": 3
+        },
+        {
+          "product_id": "PRD-014",
+          "product_name": "Bananas lb",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 0.69,
+          "procurement_cost": 0.42,
+          "discount_percent": 0.0,
+          "margin_percent": 39.13,
+          "shelf_x": 12,
+          "shelf_y": 7
+        }
+      ]
+    },
+    {
+      "name": "Random Agent 2",
+      "items_purchased": [
+        {
+          "product_id": "PRD-018",
+          "product_name": "Avocado each",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.29,
+          "procurement_cost": 0.78,
+          "discount_percent": 0.0,
+          "margin_percent": 39.53,
+          "shelf_x": 12,
+          "shelf_y": 3
+        }
+      ]
+    },
+    {
+      "name": "Random Agent 11",
+      "items_purchased": [
+        {
+          "product_id": "PRD-015",
+          "product_name": "Roma Tomatoes lb",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.99,
+          "procurement_cost": 1.15,
+          "discount_percent": 0.0,
+          "margin_percent": 42.21,
+          "shelf_x": 12,
+          "shelf_y": 6
+        },
+        {
+          "product_id": "PRD-015",
+          "product_name": "Roma Tomatoes lb",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.99,
+          "procurement_cost": 1.15,
+          "discount_percent": 0.0,
+          "margin_percent": 42.21,
+          "shelf_x": 12,
+          "shelf_y": 6
+        },
+        {
+          "product_id": "PRD-015",
+          "product_name": "Roma Tomatoes lb",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.99,
+          "procurement_cost": 1.15,
+          "discount_percent": 0.0,
+          "margin_percent": 42.21,
+          "shelf_x": 12,
+          "shelf_y": 6
+        }
+      ]
+    },
+    {
+      "name": "Random Agent 9",
+      "items_purchased": [
+        {
+          "product_id": "PRD-015",
+          "product_name": "Roma Tomatoes lb",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.99,
+          "procurement_cost": 1.15,
+          "discount_percent": 0.0,
+          "margin_percent": 42.21,
+          "shelf_x": 12,
+          "shelf_y": 6
+        }
+      ]
+    },
+    {
+      "name": "Random Agent 12",
+      "items_purchased": [
+        {
+          "product_id": "PRD-017",
+          "product_name": "Honeycrisp Apples lb",
+          "product_type": "produce",
+          "company": "Orchard Gate",
+          "selling_price": 2.49,
+          "procurement_cost": 1.55,
+          "discount_percent": 0.0,
+          "margin_percent": 37.75,
+          "shelf_x": 12,
+          "shelf_y": 4
+        },
+        {
+          "product_id": "PRD-018",
+          "product_name": "Avocado each",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.29,
+          "procurement_cost": 0.78,
+          "discount_percent": 0.0,
+          "margin_percent": 39.53,
+          "shelf_x": 12,
+          "shelf_y": 3
+        },
+        {
+          "product_id": "PRD-020",
+          "product_name": "Broccoli crown lb",
+          "product_type": "produce",
+          "company": "Leaf & Root",
+          "selling_price": 2.29,
+          "procurement_cost": 1.35,
+          "discount_percent": 0.0,
+          "margin_percent": 41.05,
+          "shelf_x": 12,
+          "shelf_y": 3
+        },
+        {
+          "product_id": "PRD-017",
+          "product_name": "Honeycrisp Apples lb",
+          "product_type": "produce",
+          "company": "Orchard Gate",
+          "selling_price": 2.49,
+          "procurement_cost": 1.55,
+          "discount_percent": 0.0,
+          "margin_percent": 37.75,
+          "shelf_x": 12,
+          "shelf_y": 4
+        },
+        {
+          "product_id": "PRD-016",
+          "product_name": "Baby Spinach 5 oz",
+          "product_type": "produce",
+          "company": "Leaf & Root",
+          "selling_price": 3.49,
+          "procurement_cost": 2.1,
+          "discount_percent": 10.0,
+          "margin_percent": 33.14,
+          "shelf_x": 12,
+          "shelf_y": 5
+        }
+      ]
+    },
+    {
+      "name": "Random Agent 14",
+      "items_purchased": [
+        {
+          "product_id": "PRD-021",
+          "product_name": "Strawberries 1 lb",
+          "product_type": "produce",
+          "company": "Orchard Gate",
+          "selling_price": 4.99,
+          "procurement_cost": 3.25,
+          "discount_percent": 20.0,
+          "margin_percent": 18.59,
+          "shelf_x": 12,
+          "shelf_y": 4
+        }
+      ]
+    },
+    {
+      "name": "Random Agent 10",
+      "items_purchased": [
+        {
+          "product_id": "PRD-015",
+          "product_name": "Roma Tomatoes lb",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.99,
+          "procurement_cost": 1.15,
+          "discount_percent": 0.0,
+          "margin_percent": 42.21,
+          "shelf_x": 12,
+          "shelf_y": 6
+        }
+      ]
+    },
+    {
+      "name": "Random Agent 4",
+      "items_purchased": [
+        {
+          "product_id": "PRD-020",
+          "product_name": "Broccoli crown lb",
+          "product_type": "produce",
+          "company": "Leaf & Root",
+          "selling_price": 2.29,
+          "procurement_cost": 1.35,
+          "discount_percent": 0.0,
+          "margin_percent": 41.05,
+          "shelf_x": 12,
+          "shelf_y": 3
+        },
+        {
+          "product_id": "PRD-021",
+          "product_name": "Strawberries 1 lb",
+          "product_type": "produce",
+          "company": "Orchard Gate",
+          "selling_price": 4.99,
+          "procurement_cost": 3.25,
+          "discount_percent": 20.0,
+          "margin_percent": 18.59,
+          "shelf_x": 12,
+          "shelf_y": 4
+        },
+        {
+          "product_id": "PRD-017",
+          "product_name": "Honeycrisp Apples lb",
+          "product_type": "produce",
+          "company": "Orchard Gate",
+          "selling_price": 2.49,
+          "procurement_cost": 1.55,
+          "discount_percent": 0.0,
+          "margin_percent": 37.75,
+          "shelf_x": 12,
+          "shelf_y": 4
+        }
+      ]
+    },
+    {
+      "name": "Random Agent 7",
+      "items_purchased": [
+        {
+          "product_id": "PRD-015",
+          "product_name": "Roma Tomatoes lb",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.99,
+          "procurement_cost": 1.15,
+          "discount_percent": 0.0,
+          "margin_percent": 42.21,
+          "shelf_x": 12,
+          "shelf_y": 6
+        }
+      ]
+    },
+    {
+      "name": "Random Agent 15",
+      "items_purchased": [
+        {
+          "product_id": "PRD-015",
+          "product_name": "Roma Tomatoes lb",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.99,
+          "procurement_cost": 1.15,
+          "discount_percent": 0.0,
+          "margin_percent": 42.21,
+          "shelf_x": 12,
+          "shelf_y": 6
+        },
+        {
+          "product_id": "PRD-015",
+          "product_name": "Roma Tomatoes lb",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.99,
+          "procurement_cost": 1.15,
+          "discount_percent": 0.0,
+          "margin_percent": 42.21,
+          "shelf_x": 12,
+          "shelf_y": 6
+        },
+        {
+          "product_id": "PRD-018",
+          "product_name": "Avocado each",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.29,
+          "procurement_cost": 0.78,
+          "discount_percent": 0.0,
+          "margin_percent": 39.53,
+          "shelf_x": 12,
+          "shelf_y": 3
+        }
+      ]
+    }
+  ],
+  "total_revenue": 70.18
+}

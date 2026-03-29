@@ -3,9 +3,8 @@ import json
 import math
 from pathlib import Path
 import random
-import tkinter as tk
-from tkinter import filedialog
 
+from plyer import filechooser
 import pyray as pr
 from agents import Agent, AgentState, GrabbableItem, RandomAgent
 
@@ -56,6 +55,7 @@ SHELF_PADDING = 4
 MIN_ZOOM = 0.1
 MAX_ZOOM = 8.0
 RANDOM_AGENT_COUNT = 15
+JSON_FILE_FILTERS = [("JSON files", "*.json"), ("All files", "*.*")]
 
 
 @dataclass
@@ -790,41 +790,37 @@ def draw_product_panel(
     )
 
 
+def choose_single_file(selection: list[str] | None) -> str:
+    if not selection:
+        return ""
+    return str(selection[0])
+
+
 def pick_products_file() -> str:
-    root = tk.Tk()
-    root.withdraw()
-    root.attributes("-topmost", True)
-    selected_path = filedialog.askopenfilename(
+    selected_path = filechooser.open_file(
+        path=str(Path.cwd()),
         title="Select products JSON",
-        filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        filters=JSON_FILE_FILTERS,
     )
-    root.destroy()
-    return selected_path
+    return choose_single_file(selected_path)
 
 
 def pick_layout_load_file() -> str:
-    root = tk.Tk()
-    root.withdraw()
-    root.attributes("-topmost", True)
-    selected_path = filedialog.askopenfilename(
+    selected_path = filechooser.open_file(
+        path=str(Path.cwd()),
         title="Select layout JSON",
-        filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        filters=JSON_FILE_FILTERS,
     )
-    root.destroy()
-    return selected_path
+    return choose_single_file(selected_path)
 
 
 def pick_layout_save_file() -> str:
-    root = tk.Tk()
-    root.withdraw()
-    root.attributes("-topmost", True)
-    selected_path = filedialog.asksaveasfilename(
+    selected_path = filechooser.save_file(
+        path=str(Path.cwd() / "layout.json"),
         title="Save layout JSON",
-        defaultextension=".json",
-        filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        filters=JSON_FILE_FILTERS,
     )
-    root.destroy()
-    return selected_path
+    return choose_single_file(selected_path)
 
 
 def load_products_from_json(path: str) -> tuple[list[Product], str]:
