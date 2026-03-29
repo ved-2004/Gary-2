@@ -2,3 +2,4 @@ raylib
 plyer
 pywin32; platform_system == "Windows"
 pyobjus; platform_system == "Darwin"
+openai
