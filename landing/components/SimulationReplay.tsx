@@ -454,14 +454,15 @@ export default function SimulationReplay({ replays }: SimulationReplayProps) {
     <div className="w-full max-w-full overflow-hidden rounded-[34px] border border-black/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(245,241,234,0.95))] p-3 shadow-[0_20px_80px_rgba(17,17,17,0.1)] sm:p-5 lg:p-8">
       <div className="mx-auto max-w-3xl text-center">
         <p className="font-[family-name:var(--font-geist-pixel-square)] text-[11px] uppercase tracking-[0.18em] text-[var(--accent-deep)]">
-          Replay Demo
+          Simulation Output
         </p>
         <h2 className="mt-3 font-[family-name:var(--font-geist-pixel-square)] text-[clamp(24px,4vw,46px)] leading-[1.08] text-[var(--ink)]">
-          Watch shoppers walk the floor.
+          Real results from Gary.2 simulations.
         </h2>
         <p className="mx-auto mt-3 max-w-2xl font-[family-name:var(--font-geist-pixel-square)] text-[12px] leading-6 text-[var(--ink-mid)] sm:leading-7">
-          Tap any shopper, scrub the timeline, and inspect the route, action,
-          reasoning, and basket state.
+          These runs come directly from our retail simulation tests. Tap any
+          shopper, scrub the timeline, and inspect routes, actions, reasoning,
+          and basket state.
         </p>
       </div>
 

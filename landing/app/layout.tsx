@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Gary.2",
   description:
-    "Gary.2 lets you sketch retail layouts, run AI shoppers through the floor, and compare which plan wins before build-out.",
+    "Gary.2 is a decision engine for retail: digital twins of stores, AI shoppers, and predictive layout testing before you build in the real world.",
 };
 
 export default function RootLayout({
