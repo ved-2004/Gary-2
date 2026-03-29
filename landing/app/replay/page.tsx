@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import SimulationReplay from "@/components/SimulationReplay";
+import SimulationReplayClient from "@/components/SimulationReplayClient";
 import { replayCatalog } from "@/lib/replay-catalog";
 
 export const metadata: Metadata = {
@@ -31,7 +31,7 @@ export default function ReplayPage() {
           </Link>
         </div>
 
-        <SimulationReplay replays={replayCatalog} />
+        <SimulationReplayClient replays={replayCatalog} />
       </div>
     </main>
   );

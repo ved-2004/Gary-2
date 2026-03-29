@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
-import SimulationReplay from "@/components/SimulationReplay";
+import SimulationReplayClient from "@/components/SimulationReplayClient";
 import WaitlistLiveCount from "@/components/WaitlistLiveCount";
 import WaitlistModal from "@/components/WaitlistModal";
 import { replayCatalog } from "@/lib/replay-catalog";
@@ -96,7 +96,7 @@ export default function Home() {
         id="live-replay"
         className="ld-showcase-anim mx-auto max-w-[92rem] overflow-hidden px-4 pb-12 sm:px-6 lg:px-8"
       >
-        <SimulationReplay replays={replayCatalog} />
+        <SimulationReplayClient replays={replayCatalog} />
       </section>
 
       <section className="flex flex-col items-center px-6 py-24 text-center">
