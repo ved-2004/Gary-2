@@ -43,15 +43,23 @@ BUTTON_TEXT_COLOR = pr.DARKGRAY
 LOAD_BUTTON_WIDTH = 180
 LAYOUT_BUTTON_WIDTH = 180
 MODE_BUTTON_WIDTH = 160
-PRODUCT_PANEL_WIDTH = 320
+PRODUCT_PANEL_WIDTH = 420
 PRODUCT_PANEL_MARGIN = 20
-PRODUCT_PANEL_PADDING = 16
-PRODUCT_PANEL_LINE_HEIGHT = 22
-PRODUCT_PANEL_HEADER_HEIGHT = 144
-PRODUCT_SECTION_HEADER_HEIGHT = 26
+PRODUCT_PANEL_PADDING = 24
+PRODUCT_PANEL_LINE_HEIGHT = 30
+PRODUCT_PANEL_HEADER_HEIGHT = 192
+PRODUCT_SECTION_HEADER_HEIGHT = 34
 PRODUCT_SECTION_GAP = 12
-PRODUCT_ITEM_HEIGHT = 50
-PRODUCT_ITEM_GAP = 8
+PRODUCT_ITEM_HEIGHT = 72
+PRODUCT_ITEM_GAP = 10
+PANEL_SECTION_GAP = 18
+PANEL_TITLE_FONT_SIZE = 32
+PANEL_NAME_FONT_SIZE = 28
+PANEL_SECTION_TITLE_FONT_SIZE = 26
+PANEL_BODY_FONT_SIZE = 24
+PANEL_HINT_FONT_SIZE = 20
+STATUS_PRIMARY_FONT_SIZE = 24
+STATUS_SECONDARY_FONT_SIZE = 22
 SHELF_TYPE_SHELF_COLOR = pr.BLUE
 SHELF_TYPE_CHECKOUT_COLOR = pr.GREEN
 SHELF_TYPE_ENTRANCE_COLOR = pr.MAGENTA
@@ -65,6 +73,7 @@ SELECTION_COLOR = pr.DARKBLUE
 PRODUCT_ITEM_HOVER_COLOR = pr.SKYBLUE
 ORIGIN_MARKER_COLOR = pr.LIGHTGRAY
 SHOPPER_COLOR = pr.BLACK
+SHOPPER_SELECTED_COLOR = pr.RED
 SHOPPER_RADIUS = 10
 SHELF_PADDING = 4
 MIN_ZOOM = 0.1
@@ -872,6 +881,37 @@ def draw_agent(agent: Agent) -> None:
     pr.draw_circle(int(center_x), int(center_y), SHOPPER_RADIUS, SHOPPER_COLOR)
 
 
+def draw_agent_selection(agent: Agent) -> None:
+    center_x = agent.x * GRID_SIZE + GRID_SIZE / 2
+    center_y = agent.y * GRID_SIZE + GRID_SIZE / 2
+    pr.draw_circle_lines(
+        int(center_x),
+        int(center_y),
+        SHOPPER_RADIUS + 4,
+        SHOPPER_SELECTED_COLOR,
+    )
+
+
+def find_agent_at_world_position(
+    agents: list[Agent],
+    world_position: pr.Vector2,
+) -> Agent | None:
+    selected_agent: Agent | None = None
+    selected_distance_sq: float | None = None
+    for agent in agents:
+        center_x = agent.x * GRID_SIZE + GRID_SIZE / 2
+        center_y = agent.y * GRID_SIZE + GRID_SIZE / 2
+        delta_x = world_position.x - center_x
+        delta_y = world_position.y - center_y
+        distance_sq = delta_x * delta_x + delta_y * delta_y
+        if distance_sq > SHOPPER_RADIUS * SHOPPER_RADIUS:
+            continue
+        if selected_distance_sq is None or distance_sq < selected_distance_sq:
+            selected_agent = agent
+            selected_distance_sq = distance_sq
+    return selected_agent
+
+
 def get_shelf_type_button_rects(panel_rect: pr.Rectangle) -> dict[str, pr.Rectangle]:
     button_y = panel_rect.y + 84
     button_width = (panel_rect.width - PRODUCT_PANEL_PADDING * 2 - BUTTON_GAP * 2) / 3
@@ -1056,8 +1096,8 @@ def draw_product_item(
     pr.draw_text(
         product.product_name,
         int(rect.x + 10),
-        int(rect.y + 8),
-        18,
+        int(rect.y + 10),
+        PANEL_BODY_FONT_SIZE,
         BUTTON_TEXT_COLOR,
     )
     pr.draw_text(
@@ -1067,8 +1107,8 @@ def draw_product_item(
             f"{product.margin_percent:.0f}% margin"
         ),
         int(rect.x + 10),
-        int(rect.y + 28),
-        14,
+        int(rect.y + 40),
+        PANEL_HINT_FONT_SIZE,
         pr.GRAY,
     )
 
@@ -1123,7 +1163,7 @@ def draw_product_list_view(
             empty_message,
             0,
             8,
-            16,
+            PANEL_HINT_FONT_SIZE,
             pr.GRAY,
         )
     else:
@@ -1187,35 +1227,41 @@ def draw_product_panel(
 
     text_x = int(panel_rect.x + PRODUCT_PANEL_PADDING)
     header_y = int(panel_rect.y + PRODUCT_PANEL_PADDING)
-    pr.draw_text("Shelf Products", text_x, header_y, 24, BUTTON_TEXT_COLOR)
+    pr.draw_text(
+        "Shelf Products",
+        text_x,
+        header_y,
+        PANEL_TITLE_FONT_SIZE,
+        BUTTON_TEXT_COLOR,
+    )
     pr.draw_text(
         f"Shelf ({shelf.x}, {shelf.y})",
         text_x,
-        header_y + 32,
-        18,
+        header_y + 42,
+        PANEL_BODY_FONT_SIZE,
         pr.GRAY,
     )
     pr.draw_text(
         f"Type: {shelf.type.title()}",
         text_x,
-        header_y + 54,
-        18,
+        header_y + 72,
+        PANEL_BODY_FONT_SIZE,
         pr.GRAY,
     )
     if is_editable:
         pr.draw_text(
             "Click type buttons or move products",
             text_x,
-            header_y + 116,
-            16,
+            header_y + 144,
+            PANEL_HINT_FONT_SIZE,
             pr.GRAY,
         )
     else:
         pr.draw_text(
             "Hover preview",
             text_x,
-            header_y + 116,
-            16,
+            header_y + 144,
+            PANEL_HINT_FONT_SIZE,
             pr.GRAY,
         )
 
@@ -1246,14 +1292,14 @@ def draw_product_panel(
         "In Shelf",
         int(top_section.x),
         int(top_section.y),
-        20,
+        PANEL_SECTION_TITLE_FONT_SIZE,
         BUTTON_TEXT_COLOR,
     )
     pr.draw_text(
         "All Products",
         int(bottom_section.x),
         int(bottom_section.y),
-        20,
+        PANEL_SECTION_TITLE_FONT_SIZE,
         BUTTON_TEXT_COLOR,
     )
 
@@ -1287,6 +1333,144 @@ def draw_product_panel(
         hovered_available_product,
         currency_code,
     )
+
+
+def get_agent_last_reasoning(agent: LLMAgent) -> str:
+    for record in reversed(agent.action_history):
+        if record.plan:
+            return record.plan
+    return ""
+
+
+def wrap_panel_text(text: str, max_width: int, font_size: int) -> list[str]:
+    words = text.split()
+    if not words:
+        return [""]
+
+    lines: list[str] = []
+    current_line = words[0]
+    for word in words[1:]:
+        candidate = f"{current_line} {word}"
+        if pr.measure_text(candidate, font_size) <= max_width:
+            current_line = candidate
+            continue
+        lines.append(current_line)
+        current_line = word
+    lines.append(current_line)
+    return lines
+
+
+def draw_agent_panel(
+    panel_rect: pr.Rectangle,
+    agent: LLMAgent,
+    currency_code: str,
+) -> None:
+    pr.draw_rectangle_rec(panel_rect, pr.fade(pr.RAYWHITE, 0.96))
+    pr.draw_rectangle_lines(
+        int(panel_rect.x),
+        int(panel_rect.y),
+        int(panel_rect.width),
+        int(panel_rect.height),
+        BUTTON_BORDER_COLOR,
+    )
+
+    text_x = int(panel_rect.x + PRODUCT_PANEL_PADDING)
+    text_width = int(panel_rect.width - PRODUCT_PANEL_PADDING * 2)
+    header_y = int(panel_rect.y + PRODUCT_PANEL_PADDING)
+    line_y = header_y
+
+    pr.draw_text(
+        "Shopper Details",
+        text_x,
+        line_y,
+        PANEL_TITLE_FONT_SIZE,
+        BUTTON_TEXT_COLOR,
+    )
+    line_y += 42
+    pr.draw_text(agent.name, text_x, line_y, PANEL_NAME_FONT_SIZE, BUTTON_TEXT_COLOR)
+    line_y += 36
+    pr.draw_text(
+        f"Position: ({agent.x}, {agent.y})",
+        text_x,
+        line_y,
+        PANEL_BODY_FONT_SIZE,
+        pr.GRAY,
+    )
+    line_y += 30
+    pr.draw_text(
+        f"Inventory: {len(agent.inventory)} item(s)",
+        text_x,
+        line_y,
+        PANEL_BODY_FONT_SIZE,
+        pr.GRAY,
+    )
+    line_y += 30
+
+    if agent.request_future is not None:
+        status_text = "Status: waiting for next model response"
+    else:
+        status_text = f"Status: {agent.completion_reason.replace('_', ' ')}"
+    pr.draw_text(status_text, text_x, line_y, PANEL_BODY_FONT_SIZE, pr.GRAY)
+    line_y += 40
+
+    pr.draw_text(
+        "Inventory",
+        text_x,
+        line_y,
+        PANEL_SECTION_TITLE_FONT_SIZE,
+        BUTTON_TEXT_COLOR,
+    )
+    line_y += 34
+    if agent.inventory:
+        for item in agent.inventory:
+            inventory_line = (
+                f"- {item.product_name} | {item.company} | "
+                f"{format_currency(item.selling_price, currency_code)}"
+            )
+            for wrapped_line in wrap_panel_text(
+                inventory_line,
+                text_width,
+                PANEL_BODY_FONT_SIZE,
+            ):
+                pr.draw_text(
+                    wrapped_line,
+                    text_x,
+                    line_y,
+                    PANEL_BODY_FONT_SIZE,
+                    pr.GRAY,
+                )
+                line_y += PRODUCT_PANEL_LINE_HEIGHT
+    else:
+        pr.draw_text(
+            "No items in inventory",
+            text_x,
+            line_y,
+            PANEL_BODY_FONT_SIZE,
+            pr.GRAY,
+        )
+        line_y += PRODUCT_PANEL_LINE_HEIGHT
+
+    line_y += PANEL_SECTION_GAP
+    pr.draw_text(
+        "Last Reasoning",
+        text_x,
+        line_y,
+        PANEL_SECTION_TITLE_FONT_SIZE,
+        BUTTON_TEXT_COLOR,
+    )
+    line_y += 34
+    reasoning = get_agent_last_reasoning(agent)
+    if not reasoning:
+        reasoning = "No reasoning recorded yet."
+    for wrapped_line in wrap_panel_text(reasoning, text_width, PANEL_BODY_FONT_SIZE):
+        pr.draw_text(
+            wrapped_line,
+            text_x,
+            line_y,
+            PANEL_BODY_FONT_SIZE,
+            pr.GRAY,
+        )
+        line_y += PRODUCT_PANEL_LINE_HEIGHT
 
 
 def choose_single_file(selection: list[str] | None) -> str:
@@ -1560,7 +1744,7 @@ def get_ui_row_y(row_index: int) -> int:
 
 
 def get_status_text_y() -> int:
-    return pr.get_screen_height() - 56
+    return pr.get_screen_height() - 84
 
 
 def get_top_action_button_rects(screen_width: int) -> dict[str, pr.Rectangle]:
@@ -1659,6 +1843,7 @@ def main():
     selection_mode: str | None = None
     current_mode = "layout"
     selected_shelf: Shelf | None = None
+    selected_agent_id: str | None = None
     assigned_list_view = ProductListView()
     available_list_view = ProductListView()
     active_panel_shelf_key: tuple[int, int] | None = None
@@ -1733,6 +1918,8 @@ def main():
                 selection_start = None
                 selection_end = None
                 selection_mode = None
+                if current_mode != "simulation":
+                    selected_agent_id = None
                 if current_mode == "simulation":
                     if simulation_boot_error or action_runner is None:
                         engine.reset_simulation()
@@ -1802,6 +1989,7 @@ def main():
                         )
                         engine.shelves = shelves
                         selected_shelf = None
+                        selected_agent_id = None
                         active_panel_shelf_key = None
                         assigned_list_view.scroll_offset = 0.0
                         available_list_view.scroll_offset = 0.0
@@ -1842,9 +2030,32 @@ def main():
             mouse_world_position = pr.get_screen_to_world_2d(mouse_position, camera)
             hovered_cell = get_cell_at_position(mouse_world_position, GRID_SIZE)
             hovered_shelf = find_shelf_at_cell(shelves, hovered_cell)
+            clicked_agent = find_agent_at_world_position(
+                engine.active_agents,
+                mouse_world_position,
+            )
             if selected_shelf is not None:
                 selected_shelf = find_shelf_at_cell(shelves, selected_shelf)
-            panel_shelf = selected_shelf if selected_shelf is not None else hovered_shelf
+            selected_agent = None
+            if selected_agent_id is not None:
+                selected_agent = next(
+                    (
+                        agent
+                        for agent in engine.active_agents
+                        if agent.customer_profile.customer_id == selected_agent_id
+                    ),
+                    None,
+                )
+                if selected_agent is None:
+                    selected_agent_id = None
+            if current_mode == "products":
+                panel_shelf = (
+                    selected_shelf if selected_shelf is not None else hovered_shelf
+                )
+            elif current_mode == "simulation":
+                panel_shelf = hovered_shelf if selected_agent is None else None
+            else:
+                panel_shelf = None
 
             panel_shelf_key = None
             if panel_shelf is not None:
@@ -1854,7 +2065,11 @@ def main():
                 available_list_view.scroll_offset = 0.0
                 active_panel_shelf_key = panel_shelf_key
 
-            if current_mode == "products" and panel_shelf is not None and mouse_wheel != 0:
+            if (
+                current_mode in {"products", "simulation"}
+                and panel_shelf is not None
+                and mouse_wheel != 0
+            ):
                 if pr.check_collision_point_rec(mouse_position, top_list_rect):
                     assigned_list_view.scroll_offset -= mouse_wheel * 40
                     assigned_list_view.scroll_offset = clamp_scroll_offset(
@@ -2033,6 +2248,20 @@ def main():
             ):
                 selected_shelf = hovered_shelf
 
+            if (
+                current_mode == "simulation"
+                and left_mouse_pressed
+                and clicked_button is None
+                and not clicked_load_products
+                and not clicked_save_layout
+                and not clicked_load_layout
+                and not pr.check_collision_point_rec(mouse_position, panel_rect)
+            ):
+                if clicked_agent is not None:
+                    selected_agent_id = clicked_agent.customer_profile.customer_id
+                else:
+                    selected_agent_id = None
+
             pr.begin_drawing()
             pr.clear_background(pr.RAYWHITE)
             pr.begin_mode_2d(camera)
@@ -2042,6 +2271,8 @@ def main():
             if current_mode == "simulation":
                 for agent in engine.active_agents:
                     draw_agent(agent)
+                if selected_agent is not None:
+                    draw_agent_selection(selected_agent)
             if current_mode == "layout":
                 draw_cell_outline(hovered_cell, CELL_HOVER_COLOR)
 
@@ -2115,23 +2346,29 @@ def main():
                 ),
                 20,
                 get_status_text_y(),
-                20,
+                STATUS_PRIMARY_FONT_SIZE,
                 pr.GRAY,
             )
             pr.draw_text(
                 status_message,
                 20,
-                get_status_text_y() + 28,
-                18,
+                get_status_text_y() + 34,
+                STATUS_SECONDARY_FONT_SIZE,
                 pr.GRAY,
             )
-            if current_mode == "products" and panel_shelf is not None:
+            if current_mode == "simulation" and selected_agent is not None:
+                draw_agent_panel(
+                    panel_rect,
+                    selected_agent,
+                    product_currency,
+                )
+            elif current_mode in {"products", "simulation"} and panel_shelf is not None:
                 draw_product_panel(
                     panel_rect,
                     panel_shelf,
                     products,
                     mouse_position,
-                    panel_shelf == selected_shelf,
+                    current_mode == "products" and panel_shelf == selected_shelf,
                     product_currency,
                     assigned_list_view,
                     available_list_view,
@@ -2140,16 +2377,16 @@ def main():
                 pr.draw_text(
                     "Click a shelf to edit its products",
                     int(screen_width - PRODUCT_PANEL_WIDTH - PRODUCT_PANEL_MARGIN),
-                    int(get_status_text_y() + 46),
-                    20,
+                    int(get_status_text_y() + 54),
+                    PANEL_BODY_FONT_SIZE,
                     pr.GRAY,
                 )
             elif current_mode == "simulation" and simulation_boot_error:
                 pr.draw_text(
                     simulation_boot_error,
                     int(screen_width - PRODUCT_PANEL_WIDTH - PRODUCT_PANEL_MARGIN),
-                    int(get_status_text_y() + 46),
-                    20,
+                    int(get_status_text_y() + 54),
+                    PANEL_BODY_FONT_SIZE,
                     pr.GRAY,
                 )
             elif (
@@ -2160,8 +2397,16 @@ def main():
                 pr.draw_text(
                     "Simulation requires at least one entrance shelf",
                     int(screen_width - PRODUCT_PANEL_WIDTH - PRODUCT_PANEL_MARGIN),
-                    int(get_status_text_y() + 46),
-                    20,
+                    int(get_status_text_y() + 54),
+                    PANEL_BODY_FONT_SIZE,
+                    pr.GRAY,
+                )
+            elif current_mode == "simulation":
+                pr.draw_text(
+                    "Click a shopper or hover a shelf",
+                    int(screen_width - PRODUCT_PANEL_WIDTH - PRODUCT_PANEL_MARGIN),
+                    int(get_status_text_y() + 54),
+                    PANEL_BODY_FONT_SIZE,
                     pr.GRAY,
                 )
             pr.end_drawing()
