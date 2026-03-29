@@ -1,13 +1,28 @@
+import argparse
+import csv
 from dataclasses import asdict, dataclass, field
 import json
 import math
+import os
 from pathlib import Path
 import random
+import time
 import tkinter as tk
 from tkinter import filedialog
 
 import pyray as pr
-from agents import Agent, AgentState, GrabbableItem, RandomAgent
+from agents import (
+    Agent,
+    AgentState,
+    AsyncOpenAIActionRunner,
+    CheckoutHint,
+    CustomerNeed,
+    CustomerProfile,
+    GrabbableItem,
+    LLMAction,
+    LLMAgent,
+    NearbyShelfInfo,
+)
 
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
@@ -55,7 +70,32 @@ SHOPPER_RADIUS = 10
 SHELF_PADDING = 4
 MIN_ZOOM = 0.1
 MAX_ZOOM = 8.0
-RANDOM_AGENT_COUNT = 15
+MAX_LLM_AGENT_COUNT = 15
+DEFAULT_MODEL = "gpt-5.4"
+DEFAULT_REASONING_EFFORT = "none"
+DEFAULT_ACTION_COOLDOWN_SECONDS = 2.0
+DEFAULT_SPAWN_DELAY_WINDOW_SECONDS = 0.0
+DEFAULT_OPENAI_TIMEOUT_SECONDS = 20.0
+DEFAULT_MAX_ITERATIONS_PER_AGENT = 100
+SUPPORTED_REASONING_EFFORTS = ("none", "minimal", "low", "medium", "high", "xhigh")
+ROOT_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT_DIR / "data"
+ROOT_ENV_PATH = ROOT_DIR / ".env"
+CUSTOMER_PROFILES_PATH = DATA_DIR / "customer_profiles.csv"
+SHOPPING_LIST_PATH = DATA_DIR / "shopping_list.csv"
+RESULTS_PATH = Path(__file__).resolve().parent / "results.json"
+
+
+@dataclass(frozen=True)
+class SimulationConfig:
+    agent_count: int = MAX_LLM_AGENT_COUNT
+    model: str = DEFAULT_MODEL
+    reasoning_effort: str | None = DEFAULT_REASONING_EFFORT
+    action_cooldown_seconds: float = DEFAULT_ACTION_COOLDOWN_SECONDS
+    spawn_delay_window_seconds: float = DEFAULT_SPAWN_DELAY_WINDOW_SECONDS
+    max_iterations_per_agent: int = DEFAULT_MAX_ITERATIONS_PER_AGENT
+    max_concurrency: int = MAX_LLM_AGENT_COUNT
+    seed: int | None = None
 
 
 @dataclass
@@ -89,7 +129,9 @@ class ProductListView:
 @dataclass
 class Engine:
     shelves: list["Shelf"] = field(default_factory=list)
-    random_agents: list[RandomAgent] = field(default_factory=list)
+    rng: random.Random = field(default_factory=random.Random)
+    active_agents: list[LLMAgent] = field(default_factory=list)
+    pending_spawns: list[LLMAgent] = field(default_factory=list)
     purchased_items: list[GrabbableItem] = field(default_factory=list)
     completed_agents: list[Agent] = field(default_factory=list)
     simulation_results_saved: bool = False
@@ -104,11 +146,12 @@ class Engine:
         return sum(item.selling_price for item in self.purchased_items)
 
     def has_active_simulation(self) -> bool:
-        return bool(self.random_agents or self.completed_agents)
+        return bool(self.active_agents or self.pending_spawns or self.completed_agents)
 
     def should_save_results(self) -> bool:
         return (
-            not self.random_agents
+            not self.active_agents
+            and not self.pending_spawns
             and bool(self.completed_agents)
             and not self.simulation_results_saved
         )
@@ -116,25 +159,168 @@ class Engine:
     def find_entrances(self) -> list[Shelf]:
         return [shelf for shelf in self.shelves if shelf.type == "entrance"]
 
-    def spawn_random_agents(self, count: int = RANDOM_AGENT_COUNT) -> list[RandomAgent]:
-        entrances = self.find_entrances()
+    def find_checkouts(self) -> list[Shelf]:
+        return [shelf for shelf in self.shelves if shelf.type == "checkout"]
+
+    def get_walkable_adjacent_positions(self, x: int, y: int) -> list[tuple[int, int]]:
+        positions: list[tuple[int, int]] = []
+        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            next_x = x + dx
+            next_y = y + dy
+            if not self.is_blocked(next_x, next_y):
+                positions.append((next_x, next_y))
+        return positions
+
+    def is_entrance_position(self, x: int, y: int) -> bool:
+        shelf = find_shelf_at_cell(self.shelves, Shelf(x, y))
+        return shelf is not None and shelf.type == "entrance"
+
+    def get_adjacent_non_entrance_shelf_count(self, x: int, y: int) -> int:
+        count = 0
+        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            shelf = find_shelf_at_cell(self.shelves, Shelf(x + dx, y + dy))
+            if shelf is not None and shelf.type != "entrance":
+                count += 1
+        return count
+
+    def pick_spawn_position(self, entrance: Shelf) -> tuple[int, int]:
+        all_candidates = self.get_walkable_adjacent_positions(entrance.x, entrance.y)
+        candidates = [
+            (x, y)
+            for x, y in all_candidates
+            if not self.is_entrance_position(x, y)
+        ]
+        if not candidates:
+            candidates = all_candidates
+        if not candidates:
+            return entrance.x, entrance.y
+
+        best_score = max(
+            self.get_adjacent_non_entrance_shelf_count(x, y)
+            for x, y in candidates
+        )
+        best_candidates = [
+            (x, y)
+            for x, y in candidates
+            if self.get_adjacent_non_entrance_shelf_count(x, y) == best_score
+        ]
+        return self.rng.choice(best_candidates)
+
+    def get_stocked_product_names(self) -> set[str]:
+        names: set[str] = set()
+        for shelf in self.shelves:
+            for product in shelf.products:
+                names.add(product.product_name)
+        return names
+
+    def reset_simulation(self) -> None:
+        for agent in self.active_agents + self.pending_spawns:
+            if agent.request_future is not None:
+                agent.request_future.cancel()
+                agent.request_future = None
         self.purchased_items = []
         self.completed_agents = []
         self.simulation_results_saved = False
+        self.active_agents = []
+        self.pending_spawns = []
+
+    def spawn_llm_agents(
+        self,
+        profiles: list[CustomerProfile],
+        config: SimulationConfig,
+        start_time: float,
+    ) -> list[LLMAgent]:
+        entrances = self.find_entrances()
+        self.reset_simulation()
         if not entrances:
-            self.random_agents = []
-            return self.random_agents
+            return []
+        if config.agent_count > len(profiles):
+            raise ValueError(
+                f"Requested {config.agent_count} agents but only {len(profiles)} "
+                "customer profiles are available."
+            )
 
-        self.random_agents = [
-            RandomAgent(entrance.x, entrance.y, name=f"Random Agent {index}")
-            for index, entrance in enumerate(random.choices(entrances, k=count), start=1)
-        ]
-        return self.random_agents
+        stocked_names = self.get_stocked_product_names()
+        spawned_agents: list[LLMAgent] = []
+        selected_profiles = self.rng.sample(profiles, k=config.agent_count)
+        for profile in selected_profiles:
+            entrance = self.rng.choice(entrances)
+            spawn_x, spawn_y = self.pick_spawn_position(entrance)
+            spawn_at = start_time
+            if config.spawn_delay_window_seconds > 0:
+                spawn_at += self.rng.uniform(0, config.spawn_delay_window_seconds)
 
-    def update_agent(self, agent: Agent) -> bool:
-        if not agent.should_request_action():
-            return False
-        return agent.update(self.get_agent_state(agent), self)
+            all_targets = profile.get_target_products()
+            available_targets = [t for t in all_targets if t in stocked_names]
+            unavailable_targets = [t for t in all_targets if t not in stocked_names]
+
+            agent = LLMAgent(
+                x=spawn_x,
+                y=spawn_y,
+                name=profile.name,
+                customer_profile=profile,
+                shopping_targets=available_targets,
+                unavailable_targets=unavailable_targets,
+                max_iterations=config.max_iterations_per_agent,
+                spawn_at=spawn_at,
+                next_action_at=spawn_at,
+            )
+            if spawn_at <= start_time:
+                self.active_agents.append(agent)
+            else:
+                self.pending_spawns.append(agent)
+            spawned_agents.append(agent)
+
+        self.pending_spawns.sort(key=lambda agent: agent.spawn_at)
+        return spawned_agents
+
+    def activate_due_agents(self, now: float) -> list[LLMAgent]:
+        activated: list[LLMAgent] = []
+        remaining: list[LLMAgent] = []
+        for agent in self.pending_spawns:
+            if agent.spawn_at <= now:
+                self.active_agents.append(agent)
+                activated.append(agent)
+            else:
+                remaining.append(agent)
+        self.pending_spawns = remaining
+        return activated
+
+    def count_in_flight_requests(self) -> int:
+        return sum(
+            1 for agent in self.active_agents if agent.request_future is not None
+        )
+
+    def get_nearest_checkout_hint(self, agent: Agent) -> CheckoutHint | None:
+        checkouts = self.find_checkouts()
+        if not checkouts:
+            return None
+
+        nearest_checkout = min(
+            checkouts,
+            key=lambda shelf: abs(shelf.x - agent.x) + abs(shelf.y - agent.y),
+        )
+        return CheckoutHint(
+            target_x=nearest_checkout.x,
+            target_y=nearest_checkout.y,
+            delta_x=nearest_checkout.x - agent.x,
+            delta_y=nearest_checkout.y - agent.y,
+            manhattan_distance=(
+                abs(nearest_checkout.x - agent.x) + abs(nearest_checkout.y - agent.y)
+            ),
+        )
+
+    def retire_agent(self, agent: LLMAgent, reason: str) -> None:
+        if agent.request_future is not None:
+            agent.request_future.cancel()
+            agent.request_future = None
+        if agent in self.active_agents:
+            self.active_agents.remove(agent)
+        if agent in self.pending_spawns:
+            self.pending_spawns.remove(agent)
+        agent.completion_reason = reason
+        if agent not in self.completed_agents:
+            self.completed_agents.append(agent)
 
     def try_move_agent(self, agent: Agent, dx: int, dy: int) -> bool:
         target_x = agent.x + dx
@@ -187,6 +373,29 @@ class Engine:
                 return True
         return False
 
+    def get_nearby_shelves(
+        self, agent: Agent, radius: int = 6,
+    ) -> list[NearbyShelfInfo]:
+        results: list[NearbyShelfInfo] = []
+        for shelf in self.shelves:
+            dist = abs(shelf.x - agent.x) + abs(shelf.y - agent.y)
+            if dist < 1 or dist > radius:
+                continue
+            product_names = tuple(p.product_name for p in shelf.products)
+            if not product_names and shelf.type == "shelf":
+                continue
+            results.append(
+                NearbyShelfInfo(
+                    shelf_x=shelf.x,
+                    shelf_y=shelf.y,
+                    shelf_type=shelf.type,
+                    manhattan_distance=dist,
+                    product_names=product_names,
+                )
+            )
+        results.sort(key=lambda s: s.manhattan_distance)
+        return results
+
     def get_agent_state(self, agent: Agent) -> AgentState:
         allowed_actions: list[str] = []
         if not self.is_blocked(agent.x - 1, agent.y):
@@ -210,9 +419,14 @@ class Engine:
             allowed_actions,
             grabbable_items,
             self.can_checkout(agent),
+            self.get_nearest_checkout_hint(agent),
+            self.get_nearby_shelves(agent),
         )
 
     def try_grab_item(self, agent: Agent, item: GrabbableItem) -> bool:
+        if any(i.product_id == item.product_id for i in agent.inventory):
+            return False
+
         shelf = find_shelf_at_cell(self.shelves, Shelf(item.shelf_x, item.shelf_y))
         if shelf is None:
             return False
@@ -231,22 +445,307 @@ class Engine:
             return False
 
         self.purchased_items.extend(agent.inventory)
-        if agent in self.random_agents:
-            self.random_agents.remove(agent)
+        if agent in self.active_agents:
+            self.active_agents.remove(agent)
+        if isinstance(agent, LLMAgent):
+            agent.completion_reason = "checked_out"
         self.completed_agents.append(agent)
         return True
 
     def build_results_payload(self) -> dict[str, object]:
+        def build_agent_result(agent: Agent, state: str) -> dict[str, object]:
+            purchased_items = [asdict(item) for item in agent.checked_out_items]
+            agent_payload: dict[str, object] = {
+                "name": agent.name,
+                "state": state,
+                "current_position": {"x": agent.x, "y": agent.y},
+                "items_purchased": purchased_items,
+                "spend": sum(item.selling_price for item in agent.checked_out_items),
+                "inventory": [asdict(item) for item in agent.inventory],
+            }
+            if isinstance(agent, LLMAgent):
+                agent_payload.update(
+                    {
+                        "customer_id": agent.customer_profile.customer_id,
+                        "completion_reason": agent.completion_reason,
+                        "iteration_count": agent.iteration_count,
+                        "max_iterations": agent.max_iterations,
+                        "unique_positions_visited": agent.get_unique_positions_visited(),
+                        "shopping_targets": agent.shopping_targets,
+                        "unavailable_targets": agent.unavailable_targets,
+                        "remaining_targets": agent.get_remaining_targets(),
+                        "failure_count": agent.failure_count,
+                        "successful_action_count": agent.successful_action_count,
+                        "last_error": agent.last_error,
+                    }
+                )
+            return agent_payload
+
+        agent_results = [
+            build_agent_result(
+                agent,
+                (
+                    agent.completion_reason
+                    if isinstance(agent, LLMAgent)
+                    else "completed"
+                ),
+            )
+            for agent in self.completed_agents
+        ]
+        agent_results.extend(
+            build_agent_result(agent, "active") for agent in self.active_agents
+        )
+        agent_results.extend(
+            build_agent_result(agent, "pending_spawn")
+            for agent in self.pending_spawns
+        )
+
         return {
-            "agents": [
-                {
-                    "name": agent.name,
-                    "items_purchased": [asdict(item) for item in agent.checked_out_items],
-                }
-                for agent in self.completed_agents
-            ],
+            "agents": agent_results,
             "total_revenue": self.get_total_revenue(),
         }
+
+
+def parse_agent_count(value: str) -> int:
+    parsed_value = int(value)
+    if parsed_value < 1 or parsed_value > MAX_LLM_AGENT_COUNT:
+        raise argparse.ArgumentTypeError(
+            f"Agent count must be between 1 and {MAX_LLM_AGENT_COUNT}."
+        )
+    return parsed_value
+
+
+def parse_non_negative_float(value: str) -> float:
+    parsed_value = float(value)
+    if parsed_value < 0:
+        raise argparse.ArgumentTypeError("Value must be non-negative.")
+    return parsed_value
+
+
+def parse_positive_int(value: str) -> int:
+    parsed_value = int(value)
+    if parsed_value < 1:
+        raise argparse.ArgumentTypeError("Value must be at least 1.")
+    return parsed_value
+
+
+def validate_reasoning_effort(model: str, reasoning_effort: str | None) -> None:
+    if reasoning_effort is None:
+        return
+
+    normalized_model = model.strip().lower()
+    if normalized_model.startswith("gpt-5-mini"):
+        raise argparse.ArgumentTypeError(
+            "gpt-5-mini uses fixed medium reasoning and does not support "
+            "--reasoning-effort overrides."
+        )
+
+    if normalized_model.startswith("gpt-5.4"):
+        allowed = {"none", "low", "medium", "high", "xhigh"}
+    elif normalized_model.startswith("gpt-5.1"):
+        allowed = {"none", "low", "medium", "high"}
+    elif normalized_model.startswith("gpt-5-pro"):
+        allowed = {"high"}
+    elif normalized_model == "gpt-5" or normalized_model.startswith("gpt-5-"):
+        allowed = {"minimal", "low", "medium", "high"}
+    else:
+        return
+
+    if reasoning_effort not in allowed:
+        allowed_text = ", ".join(sorted(allowed))
+        raise argparse.ArgumentTypeError(
+            f"{model} supports reasoning efforts: {allowed_text}."
+        )
+
+
+def parse_cli_args() -> SimulationConfig:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--agent-count",
+        type=parse_agent_count,
+        default=MAX_LLM_AGENT_COUNT,
+    )
+    parser.add_argument(
+        "--model",
+        default=DEFAULT_MODEL,
+    )
+    parser.add_argument(
+        "--reasoning-effort",
+        choices=SUPPORTED_REASONING_EFFORTS,
+        default=DEFAULT_REASONING_EFFORT,
+    )
+    parser.add_argument(
+        "--action-cooldown-seconds",
+        type=parse_non_negative_float,
+        default=DEFAULT_ACTION_COOLDOWN_SECONDS,
+    )
+    parser.add_argument(
+        "--spawn-delay-window-seconds",
+        type=parse_non_negative_float,
+        default=DEFAULT_SPAWN_DELAY_WINDOW_SECONDS,
+    )
+    parser.add_argument(
+        "--max-iterations-per-agent",
+        type=parse_positive_int,
+        default=DEFAULT_MAX_ITERATIONS_PER_AGENT,
+    )
+    parser.add_argument(
+        "--max-concurrency",
+        type=parse_positive_int,
+        default=MAX_LLM_AGENT_COUNT,
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+    )
+    args = parser.parse_args()
+    try:
+        validate_reasoning_effort(args.model, args.reasoning_effort)
+    except argparse.ArgumentTypeError as exc:
+        parser.error(str(exc))
+    max_concurrency = min(args.max_concurrency, args.agent_count, MAX_LLM_AGENT_COUNT)
+    return SimulationConfig(
+        agent_count=args.agent_count,
+        model=args.model,
+        reasoning_effort=args.reasoning_effort,
+        action_cooldown_seconds=args.action_cooldown_seconds,
+        spawn_delay_window_seconds=args.spawn_delay_window_seconds,
+        max_iterations_per_agent=args.max_iterations_per_agent,
+        max_concurrency=max_concurrency,
+        seed=args.seed,
+    )
+
+
+def load_env_file(path: Path) -> None:
+    if not path.exists():
+        return
+
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[7:].strip()
+        if "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        env_key = key.strip()
+        env_value = value.strip().strip('"').strip("'")
+        if env_key and env_key not in os.environ:
+            os.environ[env_key] = env_value
+
+
+def get_openai_api_key() -> str:
+    load_env_file(ROOT_ENV_PATH)
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError(
+            f"OPENAI_API_KEY is missing. Expected it in {ROOT_ENV_PATH} or the environment."
+        )
+    return api_key
+
+
+def split_pipe_values(raw_value: str) -> tuple[str, ...]:
+    return tuple(
+        value.strip()
+        for value in raw_value.split("|")
+        if value.strip()
+    )
+
+
+def parse_csv_bool(raw_value: str) -> bool:
+    return raw_value.strip().lower() in {"1", "true", "yes", "y"}
+
+
+def load_customer_profiles(
+    customer_profiles_path: Path = CUSTOMER_PROFILES_PATH,
+    shopping_list_path: Path = SHOPPING_LIST_PATH,
+) -> list[CustomerProfile]:
+    with customer_profiles_path.open(newline="", encoding="utf-8") as customer_file:
+        customer_rows = list(csv.DictReader(customer_file))
+    with shopping_list_path.open(newline="", encoding="utf-8") as shopping_file:
+        shopping_rows = list(csv.DictReader(shopping_file))
+
+    shopping_by_customer: dict[str, tuple[str, tuple[CustomerNeed, ...]]] = {}
+    for row in shopping_rows:
+        customer_id = row["customer_id"].strip()
+        shopping_needs: list[CustomerNeed] = []
+        need_index = 1
+        while f"need_{need_index}" in row:
+            need_name = row.get(f"need_{need_index}", "").strip()
+            need_type = row.get(f"need_{need_index}_product_type", "").strip()
+            shopping_list = split_pipe_values(row.get(f"shopping_list_{need_index}", ""))
+            if need_name:
+                shopping_needs.append(
+                    CustomerNeed(
+                        name=need_name,
+                        product_type=need_type,
+                        shopping_list=shopping_list,
+                    )
+                )
+            need_index += 1
+
+        shopping_by_customer[customer_id] = (
+            row.get("name", "").strip(),
+            tuple(shopping_needs),
+        )
+
+    profiles: list[CustomerProfile] = []
+    seen_customer_ids: set[str] = set()
+    for row in customer_rows:
+        customer_id = row["customer_id"].strip()
+        customer_name = row["name"].strip()
+        if customer_id not in shopping_by_customer:
+            raise ValueError(
+                f"Customer {customer_id} is missing from {shopping_list_path.name}."
+            )
+
+        shopping_name, shopping_needs = shopping_by_customer[customer_id]
+        if shopping_name and shopping_name != customer_name:
+            raise ValueError(
+                f"Customer name mismatch for {customer_id}: "
+                f"{customer_name!r} vs {shopping_name!r}."
+            )
+
+        profiles.append(
+            CustomerProfile(
+                customer_id=customer_id,
+                name=customer_name,
+                age=int(row["age"]),
+                gender=row["gender"].strip(),
+                income_bracket=row["income_bracket"].strip(),
+                churned=parse_csv_bool(row["churned"]),
+                marital_status=row["marital_status"].strip(),
+                number_of_children=int(row["number_of_children"]),
+                education_level=row["education_level"].strip(),
+                occupation=row["occupation"].strip(),
+                race=row["race"].strip(),
+                disability=parse_csv_bool(row["disability"]),
+                height_cm=int(row["height"]),
+                customer_needs=split_pipe_values(row["customer_needs"]),
+                purchased_alcohol_before=parse_csv_bool(
+                    row["purchased_alcohol_before"]
+                ),
+                fitness_level=row["fitness_level"].strip(),
+                organic_preference=parse_csv_bool(row["organic_preference"]),
+                total_historical_purchase=float(row["total_historical_purchase"]),
+                avg_purchase_value=float(row["avg_purchase_value"]),
+                shopping_needs=shopping_needs,
+            )
+        )
+        seen_customer_ids.add(customer_id)
+
+    extra_customer_ids = sorted(set(shopping_by_customer) - seen_customer_ids)
+    if extra_customer_ids:
+        raise ValueError(
+            "Shopping list rows are missing customer profile rows for: "
+            + ", ".join(extra_customer_ids)
+        )
+
+    profiles.sort(key=lambda profile: profile.customer_id)
+    return profiles
 
 
 def draw_grid(grid_size: int, extent: int) -> None:
@@ -922,6 +1421,124 @@ def load_layout_from_json(path: str) -> tuple[list[Shelf], list[Product], str]:
     return shelves, products, currency_code
 
 
+def start_simulation(
+    engine: Engine,
+    shopper_profiles: list[CustomerProfile],
+    config: SimulationConfig,
+    now: float,
+) -> str:
+    spawned_agents = engine.spawn_llm_agents(shopper_profiles, config, now)
+    if not spawned_agents:
+        return "Simulation requires at least one entrance shelf"
+
+    if engine.pending_spawns:
+        return (
+            f"Spawned {len(spawned_agents)} LLM shoppers: "
+            f"{len(engine.active_agents)} active, {len(engine.pending_spawns)} delayed"
+        )
+    return f"Spawned {len(spawned_agents)} LLM shoppers"
+
+
+def submit_due_llm_requests(
+    engine: Engine,
+    action_runner: AsyncOpenAIActionRunner,
+    config: SimulationConfig,
+    now: float,
+) -> str | None:
+    latest_status: str | None = None
+    for agent in list(engine.active_agents):
+        if agent.request_future is not None or now < agent.next_action_at:
+            continue
+
+        if not agent.shopping_targets and not agent.inventory:
+            engine.retire_agent(agent, "nothing_to_buy")
+            latest_status = f"{agent.name} retired - no products available in store"
+            continue
+
+        state = engine.get_agent_state(agent)
+        if agent.iteration_count >= agent.max_iterations:
+            if "checkout" in state.allowed_actions:
+                if agent.apply_llm_action(
+                    decision=LLMAction(action="checkout"),
+                    state=state,
+                    engine=engine,
+                ):
+                    latest_status = f"{agent.name} checked out at iteration limit"
+                continue
+
+            engine.retire_agent(agent, "max_iterations_reached")
+            latest_status = (
+                f"{agent.name} exited after reaching {agent.max_iterations} iterations"
+            )
+            continue
+
+        if (
+            agent.inventory
+            and state.can_checkout
+            and agent.get_remaining_iterations() <= 10
+        ):
+            if agent.apply_llm_action(
+                decision=LLMAction(action="checkout"),
+                state=state,
+                engine=engine,
+            ):
+                latest_status = f"{agent.name} checked out with low turns remaining"
+            continue
+
+        if not state.allowed_actions:
+            agent.next_action_at = now + config.action_cooldown_seconds
+            continue
+
+        try:
+            agent.request_future = action_runner.submit(
+                system_prompt=agent.build_system_prompt(),
+                state_snapshot=agent.build_state_snapshot(state),
+                shopper_id=agent.customer_profile.customer_id,
+            )
+            agent.request_count += 1
+            agent.last_error = ""
+        except Exception as exc:
+            agent.failure_count += 1
+            agent.last_error = f"Failed to submit OpenAI request: {exc}"
+            agent.next_action_at = now + config.action_cooldown_seconds
+            latest_status = f"{agent.name}: {agent.last_error}"
+
+    return latest_status
+
+
+def resolve_completed_llm_requests(
+    engine: Engine,
+    config: SimulationConfig,
+    now: float,
+) -> str | None:
+    latest_status: str | None = None
+    for agent in list(engine.active_agents):
+        future = agent.request_future
+        if future is None or not future.done():
+            continue
+
+        agent.request_future = None
+        agent.next_action_at = now + config.action_cooldown_seconds
+
+        try:
+            decision = future.result()
+        except Exception as exc:
+            agent.iteration_count += 1
+            agent.failure_count += 1
+            agent.last_error = f"OpenAI request failed: {exc}"
+            latest_status = f"{agent.name}: {agent.last_error}"
+            continue
+
+        state = engine.get_agent_state(agent)
+        applied = agent.apply_llm_action(decision, state, engine)
+        if not applied:
+            latest_status = f"{agent.name}: {agent.last_error}"
+        elif agent not in engine.active_agents:
+            latest_status = f"{agent.name} checked out"
+
+    return latest_status
+
+
 def get_mode_button_rects(screen_width: int) -> dict[str, pr.Rectangle]:
     total_width = MODE_BUTTON_WIDTH * 3 + BUTTON_GAP * 2
     start_x = (screen_width - total_width) / 2
@@ -999,6 +1616,23 @@ def draw_button(
 
 
 def main():
+    simulation_config = parse_cli_args()
+    shopper_profiles: list[CustomerProfile] = []
+    simulation_boot_error = ""
+    action_runner: AsyncOpenAIActionRunner | None = None
+
+    try:
+        shopper_profiles = load_customer_profiles()
+        action_runner = AsyncOpenAIActionRunner(
+            api_key=get_openai_api_key(),
+            model=simulation_config.model,
+            reasoning_effort=simulation_config.reasoning_effort,
+            max_concurrency=simulation_config.max_concurrency,
+            timeout_seconds=DEFAULT_OPENAI_TIMEOUT_SECONDS,
+        )
+    except (OSError, ValueError, RuntimeError) as exc:
+        simulation_boot_error = str(exc)
+
     pr.set_config_flags(pr.FLAG_WINDOW_RESIZABLE)
     pr.init_window(WINDOW_WIDTH, WINDOW_HEIGHT, "Grid")
     pr.set_target_fps(60)
@@ -1009,10 +1643,21 @@ def main():
         1.0,
     )
     shelves: list[Shelf] = []
-    engine = Engine(shelves=shelves)
+    engine = Engine(
+        shelves=shelves,
+        rng=random.Random(simulation_config.seed),
+    )
     products: list[Product] = []
     product_currency = "USD"
     status_message = "No products loaded"
+    if shopper_profiles:
+        status_message = (
+            f"Loaded {len(shopper_profiles)} shopper profiles | model "
+            f"{simulation_config.model} | reasoning "
+            f"{simulation_config.reasoning_effort or 'model default'}"
+        )
+    if simulation_boot_error:
+        status_message = f"Simulation unavailable: {simulation_boot_error}"
     selection_start: Shelf | None = None
     selection_end: Shelf | None = None
     selection_mode: str | None = None
@@ -1022,429 +1667,515 @@ def main():
     available_list_view = ProductListView()
     active_panel_shelf_key: tuple[int, int] | None = None
 
-    while not pr.window_should_close():
-        screen_width = pr.get_screen_width()
-        screen_height = pr.get_screen_height()
-        mouse_position = pr.get_mouse_position()
-        ctrl_down = pr.is_key_down(pr.KEY_LEFT_CONTROL) or pr.is_key_down(
-            pr.KEY_RIGHT_CONTROL
-        )
-        ctrl_left_mouse_pressed = (
-            ctrl_down and pr.is_mouse_button_pressed(pr.MOUSE_BUTTON_LEFT)
-        )
-        ctrl_left_mouse_down = ctrl_down and pr.is_mouse_button_down(
-            pr.MOUSE_BUTTON_LEFT
-        )
-        left_mouse_pressed = (
-            pr.is_mouse_button_pressed(pr.MOUSE_BUTTON_LEFT)
-            and not ctrl_left_mouse_pressed
-        )
-        button_rects = get_mode_button_rects(screen_width)
-        top_action_button_rects = get_top_action_button_rects(screen_width)
-        panel_rect = get_product_panel_rect(screen_width, screen_height)
-        top_list_rect, bottom_list_rect = get_product_panel_sections(panel_rect)
-        clicked_button = None
-        clicked_load_products = False
-        clicked_save_layout = False
-        clicked_load_layout = False
-        for mode_name, button in button_rects.items():
-            if (
-                left_mouse_pressed
-                and pr.check_collision_point_rec(mouse_position, button)
-            ):
-                clicked_button = mode_name
-                break
-
-        if (
-            clicked_button is None
-            and left_mouse_pressed
-            and pr.check_collision_point_rec(
-                mouse_position, top_action_button_rects["load_products"]
+    try:
+        while not pr.window_should_close():
+            screen_width = pr.get_screen_width()
+            screen_height = pr.get_screen_height()
+            mouse_position = pr.get_mouse_position()
+            ctrl_down = pr.is_key_down(pr.KEY_LEFT_CONTROL) or pr.is_key_down(
+                pr.KEY_RIGHT_CONTROL
             )
-        ):
-            clicked_load_products = True
-
-        if (
-            clicked_button is None
-            and not clicked_load_products
-            and left_mouse_pressed
-            and pr.check_collision_point_rec(
-                mouse_position, top_action_button_rects["save_layout"]
+            ctrl_left_mouse_pressed = (
+                ctrl_down and pr.is_mouse_button_pressed(pr.MOUSE_BUTTON_LEFT)
             )
-        ):
-            clicked_save_layout = True
-
-        if (
-            clicked_button is None
-            and not clicked_load_products
-            and not clicked_save_layout
-            and left_mouse_pressed
-            and pr.check_collision_point_rec(
-                mouse_position, top_action_button_rects["load_layout"]
+            ctrl_left_mouse_down = ctrl_down and pr.is_mouse_button_down(
+                pr.MOUSE_BUTTON_LEFT
             )
-        ):
-            clicked_load_layout = True
+            left_mouse_pressed = (
+                pr.is_mouse_button_pressed(pr.MOUSE_BUTTON_LEFT)
+                and not ctrl_left_mouse_pressed
+            )
+            button_rects = get_mode_button_rects(screen_width)
+            top_action_button_rects = get_top_action_button_rects(screen_width)
+            panel_rect = get_product_panel_rect(screen_width, screen_height)
+            top_list_rect, bottom_list_rect = get_product_panel_sections(panel_rect)
+            clicked_button = None
+            clicked_load_products = False
+            clicked_save_layout = False
+            clicked_load_layout = False
 
-        if clicked_button is not None:
-            current_mode = clicked_button
-            selection_start = None
-            selection_end = None
-            selection_mode = None
-            if current_mode == "simulation":
-                engine.spawn_random_agents()
-            else:
-                engine.random_agents = []
-
-        if clicked_load_products:
-            try:
-                selected_path = pick_products_file()
-                if selected_path:
-                    products, product_currency = load_products_from_json(selected_path)
-                    status_message = (
-                        f"Loaded {len(products)} products from {Path(selected_path).name}"
-                    )
-                else:
-                    status_message = "Product load canceled"
-            except (OSError, ValueError, KeyError, TypeError) as exc:
-                status_message = f"Failed to load products: {exc}"
-            selection_start = None
-            selection_end = None
-            selection_mode = None
-
-        if clicked_save_layout:
-            try:
-                selected_path = pick_layout_save_file()
-                if selected_path:
-                    save_layout_to_json(selected_path, shelves, products, product_currency)
-                    status_message = (
-                        f"Saved layout with {len(shelves)} shelves to {Path(selected_path).name}"
-                    )
-                else:
-                    status_message = "Layout save canceled"
-            except (OSError, ValueError, TypeError) as exc:
-                status_message = f"Failed to save layout: {exc}"
-            selection_start = None
-            selection_end = None
-            selection_mode = None
-
-        if clicked_load_layout:
-            try:
-                selected_path = pick_layout_load_file()
-                if selected_path:
-                    shelves, products, product_currency = load_layout_from_json(
-                        selected_path
-                    )
-                    engine.shelves = shelves
-                    selected_shelf = None
-                    if current_mode == "simulation":
-                        engine.spawn_random_agents()
-                    else:
-                        engine.random_agents = []
-                    active_panel_shelf_key = None
-                    assigned_list_view.scroll_offset = 0.0
-                    available_list_view.scroll_offset = 0.0
-                    status_message = (
-                        f"Loaded layout with {len(shelves)} shelves from {Path(selected_path).name}"
-                    )
-                else:
-                    status_message = "Layout load canceled"
-            except (OSError, ValueError, KeyError, TypeError) as exc:
-                status_message = f"Failed to load layout: {exc}"
-            selection_start = None
-            selection_end = None
-            selection_mode = None
-
-        if ctrl_down and selection_mode is not None:
-            selection_start = None
-            selection_end = None
-            selection_mode = None
-
-        mouse_wheel = pr.get_mouse_wheel_move()
-        mouse_world_position = pr.get_screen_to_world_2d(mouse_position, camera)
-        hovered_cell = get_cell_at_position(mouse_world_position, GRID_SIZE)
-        hovered_shelf = find_shelf_at_cell(shelves, hovered_cell)
-        if selected_shelf is not None:
-            selected_shelf = find_shelf_at_cell(shelves, selected_shelf)
-        panel_shelf = selected_shelf if selected_shelf is not None else hovered_shelf
-
-        panel_shelf_key = None
-        if panel_shelf is not None:
-            panel_shelf_key = (panel_shelf.x, panel_shelf.y)
-        if panel_shelf_key != active_panel_shelf_key:
-            assigned_list_view.scroll_offset = 0.0
-            available_list_view.scroll_offset = 0.0
-            active_panel_shelf_key = panel_shelf_key
-
-        if current_mode == "products" and panel_shelf is not None and mouse_wheel != 0:
-            if pr.check_collision_point_rec(mouse_position, top_list_rect):
-                assigned_list_view.scroll_offset -= mouse_wheel * 40
-                assigned_list_view.scroll_offset = clamp_scroll_offset(
-                    assigned_list_view.scroll_offset,
-                    top_list_rect.height,
-                    get_product_list_content_height(panel_shelf.products),
-                )
-                mouse_wheel = 0
-            elif pr.check_collision_point_rec(mouse_position, bottom_list_rect):
-                available_list_view.scroll_offset -= mouse_wheel * 40
-                available_list_view.scroll_offset = clamp_scroll_offset(
-                    available_list_view.scroll_offset,
-                    bottom_list_rect.height,
-                    get_product_list_content_height(
-                        get_available_products(products, panel_shelf)
-                    ),
-                )
-                mouse_wheel = 0
-
-        mouse_world_before_zoom = pr.get_screen_to_world_2d(mouse_position, camera)
-        if mouse_wheel != 0:
-            camera.offset = mouse_position
-            camera.target = mouse_world_before_zoom
-            camera.zoom = min(MAX_ZOOM, max(MIN_ZOOM, camera.zoom + mouse_wheel * 0.1))
-
-        if pr.is_mouse_button_down(pr.MOUSE_BUTTON_MIDDLE) or ctrl_left_mouse_down:
-            mouse_delta = pr.get_mouse_delta()
-            camera.target.x -= mouse_delta.x / camera.zoom
-            camera.target.y -= mouse_delta.y / camera.zoom
-
-        if current_mode == "simulation":
-            for agent in list(engine.random_agents):
-                agent.request_action()
-                engine.update_agent(agent)
-            if engine.should_save_results():
-                results_path = Path("results.json")
-                results_path.write_text(
-                    json.dumps(engine.build_results_payload(), indent=2),
-                    encoding="utf-8",
-                )
-                engine.simulation_results_saved = True
-                status_message = f"Saved simulation results to {results_path.name}"
-
-        panel_click_handled = False
-        if (
-            current_mode == "products"
-            and selected_shelf is not None
-            and left_mouse_pressed
-            and clicked_button is None
-            and not clicked_load_products
-            and pr.check_collision_point_rec(mouse_position, panel_rect)
-        ):
-            for shelf_type, button_rect in get_shelf_type_button_rects(panel_rect).items():
-                if pr.check_collision_point_rec(mouse_position, button_rect):
-                    selected_shelf.type = shelf_type
-                    panel_click_handled = True
+            for mode_name, button in button_rects.items():
+                if (
+                    left_mouse_pressed
+                    and pr.check_collision_point_rec(mouse_position, button)
+                ):
+                    clicked_button = mode_name
                     break
 
-            hovered_assigned_product = get_hovered_product_in_list(
-                top_list_rect,
-                selected_shelf.products,
-                assigned_list_view.scroll_offset,
-                mouse_position,
-            )
-            if not panel_click_handled and hovered_assigned_product is not None:
-                selected_shelf.products.remove(hovered_assigned_product)
-                panel_click_handled = True
+            if (
+                clicked_button is None
+                and left_mouse_pressed
+                and pr.check_collision_point_rec(
+                    mouse_position, top_action_button_rects["load_products"]
+                )
+            ):
+                clicked_load_products = True
 
-            if not panel_click_handled:
-                available_products = get_available_products(products, selected_shelf)
-                hovered_available_product = get_hovered_product_in_list(
-                    bottom_list_rect,
-                    available_products,
-                    available_list_view.scroll_offset,
+            if (
+                clicked_button is None
+                and not clicked_load_products
+                and left_mouse_pressed
+                and pr.check_collision_point_rec(
+                    mouse_position, top_action_button_rects["save_layout"]
+                )
+            ):
+                clicked_save_layout = True
+
+            if (
+                clicked_button is None
+                and not clicked_load_products
+                and not clicked_save_layout
+                and left_mouse_pressed
+                and pr.check_collision_point_rec(
+                    mouse_position, top_action_button_rects["load_layout"]
+                )
+            ):
+                clicked_load_layout = True
+
+            if clicked_button is not None:
+                current_mode = clicked_button
+                selection_start = None
+                selection_end = None
+                selection_mode = None
+                if current_mode == "simulation":
+                    if simulation_boot_error or action_runner is None:
+                        engine.reset_simulation()
+                        status_message = (
+                            "Cannot start simulation: "
+                            f"{simulation_boot_error or 'OpenAI runner unavailable'}"
+                        )
+                    else:
+                        try:
+                            status_message = start_simulation(
+                                engine,
+                                shopper_profiles,
+                                simulation_config,
+                                time.monotonic(),
+                            )
+                        except ValueError as exc:
+                            engine.reset_simulation()
+                            status_message = f"Cannot start simulation: {exc}"
+                else:
+                    engine.reset_simulation()
+
+            if clicked_load_products:
+                try:
+                    selected_path = pick_products_file()
+                    if selected_path:
+                        products, product_currency = load_products_from_json(selected_path)
+                        status_message = (
+                            f"Loaded {len(products)} products from "
+                            f"{Path(selected_path).name}"
+                        )
+                    else:
+                        status_message = "Product load canceled"
+                except (OSError, ValueError, KeyError, TypeError) as exc:
+                    status_message = f"Failed to load products: {exc}"
+                selection_start = None
+                selection_end = None
+                selection_mode = None
+
+            if clicked_save_layout:
+                try:
+                    selected_path = pick_layout_save_file()
+                    if selected_path:
+                        save_layout_to_json(
+                            selected_path,
+                            shelves,
+                            products,
+                            product_currency,
+                        )
+                        status_message = (
+                            f"Saved layout with {len(shelves)} shelves to "
+                            f"{Path(selected_path).name}"
+                        )
+                    else:
+                        status_message = "Layout save canceled"
+                except (OSError, ValueError, TypeError) as exc:
+                    status_message = f"Failed to save layout: {exc}"
+                selection_start = None
+                selection_end = None
+                selection_mode = None
+
+            if clicked_load_layout:
+                try:
+                    selected_path = pick_layout_load_file()
+                    if selected_path:
+                        shelves, products, product_currency = load_layout_from_json(
+                            selected_path
+                        )
+                        engine.shelves = shelves
+                        selected_shelf = None
+                        active_panel_shelf_key = None
+                        assigned_list_view.scroll_offset = 0.0
+                        available_list_view.scroll_offset = 0.0
+                        if current_mode == "simulation":
+                            if simulation_boot_error or action_runner is None:
+                                engine.reset_simulation()
+                                status_message = (
+                                    f"Loaded layout from {Path(selected_path).name} | "
+                                    "Simulation unavailable"
+                                )
+                            else:
+                                status_message = start_simulation(
+                                    engine,
+                                    shopper_profiles,
+                                    simulation_config,
+                                    time.monotonic(),
+                                )
+                        else:
+                            engine.reset_simulation()
+                            status_message = (
+                                f"Loaded layout with {len(shelves)} shelves from "
+                                f"{Path(selected_path).name}"
+                            )
+                    else:
+                        status_message = "Layout load canceled"
+                except (OSError, ValueError, KeyError, TypeError) as exc:
+                    status_message = f"Failed to load layout: {exc}"
+                selection_start = None
+                selection_end = None
+                selection_mode = None
+
+            if ctrl_down and selection_mode is not None:
+                selection_start = None
+                selection_end = None
+                selection_mode = None
+
+            mouse_wheel = pr.get_mouse_wheel_move()
+            mouse_world_position = pr.get_screen_to_world_2d(mouse_position, camera)
+            hovered_cell = get_cell_at_position(mouse_world_position, GRID_SIZE)
+            hovered_shelf = find_shelf_at_cell(shelves, hovered_cell)
+            if selected_shelf is not None:
+                selected_shelf = find_shelf_at_cell(shelves, selected_shelf)
+            panel_shelf = selected_shelf if selected_shelf is not None else hovered_shelf
+
+            panel_shelf_key = None
+            if panel_shelf is not None:
+                panel_shelf_key = (panel_shelf.x, panel_shelf.y)
+            if panel_shelf_key != active_panel_shelf_key:
+                assigned_list_view.scroll_offset = 0.0
+                available_list_view.scroll_offset = 0.0
+                active_panel_shelf_key = panel_shelf_key
+
+            if current_mode == "products" and panel_shelf is not None and mouse_wheel != 0:
+                if pr.check_collision_point_rec(mouse_position, top_list_rect):
+                    assigned_list_view.scroll_offset -= mouse_wheel * 40
+                    assigned_list_view.scroll_offset = clamp_scroll_offset(
+                        assigned_list_view.scroll_offset,
+                        top_list_rect.height,
+                        get_product_list_content_height(panel_shelf.products),
+                    )
+                    mouse_wheel = 0
+                elif pr.check_collision_point_rec(mouse_position, bottom_list_rect):
+                    available_list_view.scroll_offset -= mouse_wheel * 40
+                    available_list_view.scroll_offset = clamp_scroll_offset(
+                        available_list_view.scroll_offset,
+                        bottom_list_rect.height,
+                        get_product_list_content_height(
+                            get_available_products(products, panel_shelf)
+                        ),
+                    )
+                    mouse_wheel = 0
+
+            mouse_world_before_zoom = pr.get_screen_to_world_2d(mouse_position, camera)
+            if mouse_wheel != 0:
+                camera.offset = mouse_position
+                camera.target = mouse_world_before_zoom
+                camera.zoom = min(
+                    MAX_ZOOM,
+                    max(MIN_ZOOM, camera.zoom + mouse_wheel * 0.1),
+                )
+
+            if pr.is_mouse_button_down(pr.MOUSE_BUTTON_MIDDLE) or ctrl_left_mouse_down:
+                mouse_delta = pr.get_mouse_delta()
+                camera.target.x -= mouse_delta.x / camera.zoom
+                camera.target.y -= mouse_delta.y / camera.zoom
+
+            if current_mode == "simulation" and not simulation_boot_error:
+                now = time.monotonic()
+                activated_agents = engine.activate_due_agents(now)
+                if activated_agents:
+                    status_message = (
+                        f"Activated {len(activated_agents)} shopper(s) | "
+                        f"{len(engine.pending_spawns)} delayed remaining"
+                    )
+
+                resolved_status = resolve_completed_llm_requests(
+                    engine,
+                    simulation_config,
+                    now,
+                )
+                if resolved_status:
+                    status_message = resolved_status
+
+                if action_runner is not None:
+                    submitted_status = submit_due_llm_requests(
+                        engine,
+                        action_runner,
+                        simulation_config,
+                        now,
+                    )
+                    if submitted_status:
+                        status_message = submitted_status
+
+                if engine.should_save_results():
+                    RESULTS_PATH.write_text(
+                        json.dumps(engine.build_results_payload(), indent=2),
+                        encoding="utf-8",
+                    )
+                    engine.simulation_results_saved = True
+                    status_message = f"Saved simulation results to {RESULTS_PATH.name}"
+
+            panel_click_handled = False
+            if (
+                current_mode == "products"
+                and selected_shelf is not None
+                and left_mouse_pressed
+                and clicked_button is None
+                and not clicked_load_products
+                and pr.check_collision_point_rec(mouse_position, panel_rect)
+            ):
+                for shelf_type, button_rect in get_shelf_type_button_rects(
+                    panel_rect
+                ).items():
+                    if pr.check_collision_point_rec(mouse_position, button_rect):
+                        selected_shelf.type = shelf_type
+                        panel_click_handled = True
+                        break
+
+                hovered_assigned_product = get_hovered_product_in_list(
+                    top_list_rect,
+                    selected_shelf.products,
+                    assigned_list_view.scroll_offset,
                     mouse_position,
                 )
-                if hovered_available_product is not None:
-                    selected_shelf.products.append(hovered_available_product)
+                if not panel_click_handled and hovered_assigned_product is not None:
+                    selected_shelf.products.remove(hovered_assigned_product)
                     panel_click_handled = True
 
-        can_edit_layout = (
-            current_mode == "layout"
-            and not ctrl_down
-            and clicked_button is None
-            and not clicked_load_products
-            and not clicked_save_layout
-            and not clicked_load_layout
-        )
+                if not panel_click_handled:
+                    available_products = get_available_products(products, selected_shelf)
+                    hovered_available_product = get_hovered_product_in_list(
+                        bottom_list_rect,
+                        available_products,
+                        available_list_view.scroll_offset,
+                        mouse_position,
+                    )
+                    if hovered_available_product is not None:
+                        selected_shelf.products.append(hovered_available_product)
+                        panel_click_handled = True
 
-        if can_edit_layout and pr.is_mouse_button_pressed(pr.MOUSE_BUTTON_LEFT):
-            selection_start = hovered_cell
-            selection_end = selection_start
-            selection_mode = "add"
-
-        if can_edit_layout and pr.is_mouse_button_pressed(pr.MOUSE_BUTTON_RIGHT):
-            selection_start = hovered_cell
-            selection_end = selection_start
-            selection_mode = "delete"
-
-        if (
-            selection_mode == "add"
-            and selection_start is not None
-            and pr.is_mouse_button_down(pr.MOUSE_BUTTON_LEFT)
-        ):
-            selection_end = hovered_cell
-
-        if (
-            selection_mode == "delete"
-            and selection_start is not None
-            and pr.is_mouse_button_down(pr.MOUSE_BUTTON_RIGHT)
-        ):
-            selection_end = hovered_cell
-
-        if (
-            selection_mode == "add"
-            and selection_start is not None
-            and selection_end is not None
-            and pr.is_mouse_button_released(pr.MOUSE_BUTTON_LEFT)
-        ):
-            add_shelves(shelves, build_shelves(selection_start, selection_end))
-            selection_start = None
-            selection_end = None
-            selection_mode = None
-
-        if (
-            selection_mode == "delete"
-            and selection_start is not None
-            and selection_end is not None
-            and pr.is_mouse_button_released(pr.MOUSE_BUTTON_RIGHT)
-        ):
-            shelves = remove_shelves(shelves, build_shelves(selection_start, selection_end))
-            engine.shelves = shelves
-            selection_start = None
-            selection_end = None
-            selection_mode = None
-
-        if (
-            current_mode == "products"
-            and left_mouse_pressed
-            and clicked_button is None
-            and not clicked_load_products
-            and not clicked_save_layout
-            and not clicked_load_layout
-            and not panel_click_handled
-            and not pr.check_collision_point_rec(mouse_position, panel_rect)
-        ):
-            selected_shelf = hovered_shelf
-
-        pr.begin_drawing()
-        pr.clear_background(pr.RAYWHITE)
-        pr.begin_mode_2d(camera)
-        draw_grid(GRID_SIZE, GRID_EXTENT)
-        draw_origin_marker()
-        draw_shelves(shelves, hovered_shelf, selected_shelf)
-        if current_mode == "simulation":
-            for agent in engine.random_agents:
-                draw_agent(agent)
-        if current_mode == "layout":
-            draw_cell_outline(hovered_cell, CELL_HOVER_COLOR)
-
-        if selection_start is not None and selection_end is not None:
-            is_single_click = (
-                selection_start == selection_end
+            can_edit_layout = (
+                current_mode == "layout"
+                and not ctrl_down
+                and clicked_button is None
+                and not clicked_load_products
+                and not clicked_save_layout
+                and not clicked_load_layout
             )
-            if not (selection_mode == "add" and is_single_click):
-                draw_selection_outline(selection_start, selection_end)
-                preview_color = (
-                    SHELF_PREVIEW_COLOR
-                    if selection_mode == "add"
-                    else SHELF_DELETE_PREVIEW_COLOR
+
+            if can_edit_layout and pr.is_mouse_button_pressed(pr.MOUSE_BUTTON_LEFT):
+                selection_start = hovered_cell
+                selection_end = selection_start
+                selection_mode = "add"
+
+            if can_edit_layout and pr.is_mouse_button_pressed(pr.MOUSE_BUTTON_RIGHT):
+                selection_start = hovered_cell
+                selection_end = selection_start
+                selection_mode = "delete"
+
+            if (
+                selection_mode == "add"
+                and selection_start is not None
+                and pr.is_mouse_button_down(pr.MOUSE_BUTTON_LEFT)
+            ):
+                selection_end = hovered_cell
+
+            if (
+                selection_mode == "delete"
+                and selection_start is not None
+                and pr.is_mouse_button_down(pr.MOUSE_BUTTON_RIGHT)
+            ):
+                selection_end = hovered_cell
+
+            if (
+                selection_mode == "add"
+                and selection_start is not None
+                and selection_end is not None
+                and pr.is_mouse_button_released(pr.MOUSE_BUTTON_LEFT)
+            ):
+                add_shelves(shelves, build_shelves(selection_start, selection_end))
+                selection_start = None
+                selection_end = None
+                selection_mode = None
+
+            if (
+                selection_mode == "delete"
+                and selection_start is not None
+                and selection_end is not None
+                and pr.is_mouse_button_released(pr.MOUSE_BUTTON_RIGHT)
+            ):
+                shelves = remove_shelves(
+                    shelves,
+                    build_shelves(selection_start, selection_end),
                 )
-                preview_shelves = build_shelves(selection_start, selection_end)
-                for shelf in preview_shelves:
-                    draw_shelf(shelf, preview_color)
-        pr.end_mode_2d()
-        draw_button(
-            top_action_button_rects["load_products"],
-            "Load Products",
-            is_hovered=pr.check_collision_point_rec(
-                mouse_position, top_action_button_rects["load_products"]
-            ),
-        )
-        draw_button(
-            top_action_button_rects["save_layout"],
-            "Save Layout",
-            is_hovered=pr.check_collision_point_rec(
-                mouse_position, top_action_button_rects["save_layout"]
-            ),
-        )
-        draw_button(
-            top_action_button_rects["load_layout"],
-            "Load Layout",
-            is_hovered=pr.check_collision_point_rec(
-                mouse_position, top_action_button_rects["load_layout"]
-            ),
-        )
-        draw_button(
-            button_rects["layout"],
-            "Layout",
-            current_mode == "layout",
-            pr.check_collision_point_rec(mouse_position, button_rects["layout"]),
-        )
-        draw_button(
-            button_rects["products"],
-            "Products",
-            current_mode == "products",
-            pr.check_collision_point_rec(mouse_position, button_rects["products"]),
-        )
-        draw_button(
-            button_rects["simulation"],
-            "Simulation",
-            current_mode == "simulation",
-            pr.check_collision_point_rec(mouse_position, button_rects["simulation"]),
-        )
-        controls_text = "Middle mouse or Ctrl+Click: pan | Scroll wheel: zoom"
-        if current_mode == "simulation":
-            controls_text += f" | {len(engine.random_agents)} random agents active"
+                engine.shelves = shelves
+                selection_start = None
+                selection_end = None
+                selection_mode = None
 
-        pr.draw_text(
-            (
-                f"Mode: {current_mode.title()} | "
-                f"Products: {len(products)} | "
-                f"Revenue: {product_currency} {engine.get_total_revenue():.2f} | "
-                f"{controls_text}"
-            ),
-            20,
-            get_status_text_y(),
-            20,
-            pr.GRAY,
-        )
-        pr.draw_text(
-            status_message,
-            20,
-            get_status_text_y() + 28,
-            18,
-            pr.GRAY,
-        )
-        if current_mode == "products" and panel_shelf is not None:
-            draw_product_panel(
-                panel_rect,
-                panel_shelf,
-                products,
-                mouse_position,
-                panel_shelf == selected_shelf,
-                product_currency,
-                assigned_list_view,
-                available_list_view,
+            if (
+                current_mode == "products"
+                and left_mouse_pressed
+                and clicked_button is None
+                and not clicked_load_products
+                and not clicked_save_layout
+                and not clicked_load_layout
+                and not panel_click_handled
+                and not pr.check_collision_point_rec(mouse_position, panel_rect)
+            ):
+                selected_shelf = hovered_shelf
+
+            pr.begin_drawing()
+            pr.clear_background(pr.RAYWHITE)
+            pr.begin_mode_2d(camera)
+            draw_grid(GRID_SIZE, GRID_EXTENT)
+            draw_origin_marker()
+            draw_shelves(shelves, hovered_shelf, selected_shelf)
+            if current_mode == "simulation":
+                for agent in engine.active_agents:
+                    draw_agent(agent)
+            if current_mode == "layout":
+                draw_cell_outline(hovered_cell, CELL_HOVER_COLOR)
+
+            if selection_start is not None and selection_end is not None:
+                is_single_click = selection_start == selection_end
+                if not (selection_mode == "add" and is_single_click):
+                    draw_selection_outline(selection_start, selection_end)
+                    preview_color = (
+                        SHELF_PREVIEW_COLOR
+                        if selection_mode == "add"
+                        else SHELF_DELETE_PREVIEW_COLOR
+                    )
+                    preview_shelves = build_shelves(selection_start, selection_end)
+                    for shelf in preview_shelves:
+                        draw_shelf(shelf, preview_color)
+            pr.end_mode_2d()
+            draw_button(
+                top_action_button_rects["load_products"],
+                "Load Products",
+                is_hovered=pr.check_collision_point_rec(
+                    mouse_position, top_action_button_rects["load_products"]
+                ),
             )
-        elif current_mode == "products":
+            draw_button(
+                top_action_button_rects["save_layout"],
+                "Save Layout",
+                is_hovered=pr.check_collision_point_rec(
+                    mouse_position, top_action_button_rects["save_layout"]
+                ),
+            )
+            draw_button(
+                top_action_button_rects["load_layout"],
+                "Load Layout",
+                is_hovered=pr.check_collision_point_rec(
+                    mouse_position, top_action_button_rects["load_layout"]
+                ),
+            )
+            draw_button(
+                button_rects["layout"],
+                "Layout",
+                current_mode == "layout",
+                pr.check_collision_point_rec(mouse_position, button_rects["layout"]),
+            )
+            draw_button(
+                button_rects["products"],
+                "Products",
+                current_mode == "products",
+                pr.check_collision_point_rec(mouse_position, button_rects["products"]),
+            )
+            draw_button(
+                button_rects["simulation"],
+                "Simulation",
+                current_mode == "simulation",
+                pr.check_collision_point_rec(mouse_position, button_rects["simulation"]),
+            )
+            controls_text = "Middle mouse or Ctrl+Click: pan | Scroll wheel: zoom"
+            if current_mode == "simulation":
+                controls_text += (
+                    f" | active {len(engine.active_agents)}"
+                    f" | pending {len(engine.pending_spawns)}"
+                    f" | in-flight {engine.count_in_flight_requests()}"
+                    f" | completed {len(engine.completed_agents)}"
+                )
+
             pr.draw_text(
-                "Click a shelf to edit its products",
-                int(screen_width - PRODUCT_PANEL_WIDTH - PRODUCT_PANEL_MARGIN),
-                int(get_status_text_y() + 46),
+                (
+                    f"Mode: {current_mode.title()} | "
+                    f"Products: {len(products)} | "
+                    f"Revenue: {product_currency} {engine.get_total_revenue():.2f} | "
+                    f"{controls_text}"
+                ),
+                20,
+                get_status_text_y(),
                 20,
                 pr.GRAY,
             )
-        elif current_mode == "simulation" and not engine.random_agents:
             pr.draw_text(
-                "Simulation requires at least one entrance shelf",
-                int(screen_width - PRODUCT_PANEL_WIDTH - PRODUCT_PANEL_MARGIN),
-                int(get_status_text_y() + 46),
+                status_message,
                 20,
+                get_status_text_y() + 28,
+                18,
                 pr.GRAY,
             )
-        pr.end_drawing()
-
-    unload_list_view_texture(assigned_list_view)
-    unload_list_view_texture(available_list_view)
-    pr.close_window()
+            if current_mode == "products" and panel_shelf is not None:
+                draw_product_panel(
+                    panel_rect,
+                    panel_shelf,
+                    products,
+                    mouse_position,
+                    panel_shelf == selected_shelf,
+                    product_currency,
+                    assigned_list_view,
+                    available_list_view,
+                )
+            elif current_mode == "products":
+                pr.draw_text(
+                    "Click a shelf to edit its products",
+                    int(screen_width - PRODUCT_PANEL_WIDTH - PRODUCT_PANEL_MARGIN),
+                    int(get_status_text_y() + 46),
+                    20,
+                    pr.GRAY,
+                )
+            elif current_mode == "simulation" and simulation_boot_error:
+                pr.draw_text(
+                    simulation_boot_error,
+                    int(screen_width - PRODUCT_PANEL_WIDTH - PRODUCT_PANEL_MARGIN),
+                    int(get_status_text_y() + 46),
+                    20,
+                    pr.GRAY,
+                )
+            elif (
+                current_mode == "simulation"
+                and not engine.active_agents
+                and not engine.pending_spawns
+            ):
+                pr.draw_text(
+                    "Simulation requires at least one entrance shelf",
+                    int(screen_width - PRODUCT_PANEL_WIDTH - PRODUCT_PANEL_MARGIN),
+                    int(get_status_text_y() + 46),
+                    20,
+                    pr.GRAY,
+                )
+            pr.end_drawing()
+    finally:
+        engine.reset_simulation()
+        unload_list_view_texture(assigned_list_view)
+        unload_list_view_texture(available_list_view)
+        pr.close_window()
+        if action_runner is not None:
+            action_runner.close()
 
 if __name__ == "__main__":
     main()
