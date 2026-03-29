@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
+import AskModal from "@/components/AskModal";
 import SimulationReplayClient from "@/components/SimulationReplayClient";
 import WaitlistLiveCount from "@/components/WaitlistLiveCount";
 import WaitlistModal from "@/components/WaitlistModal";
@@ -13,13 +14,53 @@ const PixelBlast = dynamic(() => import("@/components/PixelBlast"), {
 });
 
 export default function Home() {
+  const [askOpen, setAskOpen] = useState(false);
   const [waitlistOpen, setWaitlistOpen] = useState(false);
+  const [waitlistMode, setWaitlistMode] = useState<"default" | "intro">(
+    "default",
+  );
+
+  function openDefaultWaitlist() {
+    setAskOpen(false);
+    setWaitlistMode("default");
+    setWaitlistOpen(true);
+  }
+
+  function openIntroWaitlist() {
+    setAskOpen(false);
+    setWaitlistMode("intro");
+    setWaitlistOpen(true);
+  }
 
   return (
     <div className="ld">
+      <AskModal
+        open={askOpen}
+        onClose={() => setAskOpen(false)}
+        onPrimaryAction={openIntroWaitlist}
+      />
       <WaitlistModal
+        key={`${waitlistMode}-${waitlistOpen ? "open" : "closed"}`}
         open={waitlistOpen}
         onClose={() => setWaitlistOpen(false)}
+        title={
+          waitlistMode === "intro"
+            ? "Help us start a retail pilot"
+            : undefined
+        }
+        description={
+          waitlistMode === "intro"
+            ? "If you can introduce Gary.2 to retail clients who might pilot the product, leave your details here and tell us who you have in mind."
+            : undefined
+        }
+        submitLabel={
+          waitlistMode === "intro" ? "Send the intro lead" : undefined
+        }
+        prefillMessage={
+          waitlistMode === "intro"
+            ? "I can introduce Gary.2 to retail clients who may be open to a pilot."
+            : undefined
+        }
       />
 
       <div className="ld-hero-stack">
@@ -51,7 +92,7 @@ export default function Home() {
               <button
                 type="button"
                 className="ld-nav-enter border-0 cursor-pointer font-inherit"
-                onClick={() => setWaitlistOpen(true)}
+                onClick={openDefaultWaitlist}
               >
                 Get early access&nbsp;&rsaquo;
               </button>
@@ -73,7 +114,7 @@ export default function Home() {
             <button
               type="button"
               className="ld-hero-cta border-0 cursor-pointer font-inherit"
-              onClick={() => setWaitlistOpen(true)}
+              onClick={openDefaultWaitlist}
             >
               Get early access&nbsp;&rsaquo;
             </button>
@@ -109,10 +150,10 @@ export default function Home() {
         </p>
         <button
           type="button"
-          onClick={() => setWaitlistOpen(true)}
+          onClick={() => setAskOpen(true)}
           className="rounded-full border-0 bg-[var(--ink)] px-10 py-4 font-[family-name:var(--px)] text-[13px] text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[var(--accent-deep)] hover:shadow-[0_8px_28px_rgba(124,95,214,0.3)]"
         >
-          Get early access&nbsp;&rsaquo;
+          I can help with an intro&nbsp;&rsaquo;
         </button>
         <Link
           href="/replay"
