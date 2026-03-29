@@ -77,6 +77,7 @@ from ui.panels import (
     get_shelf_type_button_rects,
     unload_list_view_texture,
 )
+from ui.product_images import load_product_textures, unload_product_textures
 from ui.theme import (
     CELL_HOVER_COLOR,
     GRID_EXTENT,
@@ -150,6 +151,7 @@ def main() -> None:
     product_search_query = ""
     active_panel_shelf_key: tuple[int, int] | None = None
     agent_sprites = load_agent_sprites()
+    product_textures = load_product_textures()
     sprite_names = list(agent_sprites.keys())
     checkout_texture = load_checkout_texture()
     replay_state: ReplayState | None = None
@@ -739,6 +741,7 @@ def main() -> None:
                 hovered_shelf,
                 selected_shelf if current_mode != "replay" else None,
                 checkout_texture,
+                product_textures,
             )
             if current_mode == "simulation":
                 for agent in engine.active_agents:
@@ -938,6 +941,7 @@ def main() -> None:
         engine.reset_simulation()
         unload_checkout_texture(checkout_texture)
         unload_agent_sprites(agent_sprites)
+        unload_product_textures(product_textures)
         unload_list_view_texture(assigned_list_view)
         unload_list_view_texture(available_list_view)
         pr.close_window()

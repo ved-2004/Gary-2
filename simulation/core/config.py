@@ -11,6 +11,7 @@ RESULTS_PATH = SIMULATION_DIR / "results.json"
 TRAJECTORY_DIR = SIMULATION_DIR / "trajectory"
 PEOPLE_SPRITES_DIR = ROOT_DIR / "Sprites" / "PeopleSprites"
 CHECKOUT_SPRITE_PATH = ROOT_DIR / "Sprites" / "checkout.png"
+PRODUCT_IMAGES_DIR = ROOT_DIR / "Sprites" / "product_images"
 
 MAX_LLM_AGENT_COUNT = 15
 DEFAULT_MODEL = "gpt-5.4"

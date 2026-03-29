@@ -3,6 +3,7 @@ import pyray as pr
 from agents import Agent
 from core.config import CHECKOUT_SPRITE_PATH, PEOPLE_SPRITES_DIR
 from core.store import Shelf
+from ui.product_images import get_product_image_filename
 
 from ui.theme import (
     GRID_EXTENT,
@@ -76,11 +77,79 @@ def draw_shelf(
     pr.draw_rectangle(x, y, size, size, color)
 
 
+def draw_shelf_product_stack(
+    shelf: Shelf,
+    product_textures: dict[str, object],
+) -> None:
+    if shelf.type != "shelf" or not shelf.products:
+        return
+
+    stacked_textures: list[object] = []
+    for product in shelf.products:
+        filename = get_product_image_filename(product.id)
+        if filename is None:
+            continue
+        texture = product_textures.get(filename)
+        if texture is not None:
+            stacked_textures.append(texture)
+
+    if not stacked_textures:
+        return
+
+    x = shelf.x * GRID_SIZE + SHELF_PADDING
+    y = shelf.y * GRID_SIZE + SHELF_PADDING
+    size = GRID_SIZE - SHELF_PADDING * 2
+    visible_count = min(3, len(stacked_textures))
+    icon_size = min(22.0, max(14.0, size * 0.62))
+    if visible_count == 1:
+        texture = stacked_textures[0]
+        draw_x = x + (size - icon_size) / 2
+        draw_y = y + (size - icon_size) / 2
+        pr.draw_texture_pro(
+            texture,
+            pr.Rectangle(0, 0, float(texture.width), float(texture.height)),
+            pr.Rectangle(draw_x, draw_y, icon_size, icon_size),
+            pr.Vector2(0, 0),
+            0.0,
+            pr.WHITE,
+        )
+        return
+
+    offset_x = 6.0
+    offset_y = 4.5
+    base_x = x + 2
+    base_y = y + size - icon_size - 2
+
+    for index, texture in enumerate(stacked_textures[:visible_count]):
+        remaining = visible_count - index - 1
+        draw_x = base_x + offset_x * index
+        draw_y = base_y - offset_y * remaining
+        pr.draw_texture_pro(
+            texture,
+            pr.Rectangle(0, 0, float(texture.width), float(texture.height)),
+            pr.Rectangle(draw_x, draw_y, icon_size, icon_size),
+            pr.Vector2(0, 0),
+            0.0,
+            pr.WHITE,
+        )
+
+    hidden_count = len(stacked_textures) - visible_count
+    if hidden_count > 0:
+        pr.draw_text(
+            f"+{hidden_count}",
+            int(x + size - 18),
+            int(y + 1),
+            11,
+            pr.DARKGRAY,
+        )
+
+
 def draw_shelves(
     shelves: list[Shelf],
     hovered_shelf: Shelf | None = None,
     selected_shelf: Shelf | None = None,
     checkout_texture: object | None = None,
+    product_textures: dict[str, object] | None = None,
 ) -> None:
     for shelf in shelves:
         color = get_shelf_type_color(shelf.type)
@@ -101,6 +170,8 @@ def draw_shelves(
                 GRID_SIZE - SHELF_PADDING * 2,
                 SHELF_HOVER_COLOR,
             )
+        if product_textures is not None:
+            draw_shelf_product_stack(shelf, product_textures)
         pr.draw_rectangle_lines(
             shelf.x * GRID_SIZE + SHELF_PADDING,
             shelf.y * GRID_SIZE + SHELF_PADDING,
