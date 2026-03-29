@@ -466,11 +466,11 @@ export default function SimulationReplay({ replays }: SimulationReplayProps) {
       </div>
 
       {hasReplayPicker ? (
-        <div className="mx-auto mt-5 w-full max-w-[28rem]">
+        <div className="mx-auto mt-5 flex w-fit max-w-full justify-center">
           <div
             role="tablist"
             aria-label="Replay layouts"
-            className="grid grid-cols-2 gap-2 rounded-[24px] border border-black/8 bg-white/75 p-2 shadow-[0_8px_24px_rgba(17,17,17,0.06)]"
+            className="inline-flex max-w-full items-center gap-2 rounded-[24px] border border-black/8 bg-white/75 p-2 shadow-[0_8px_24px_rgba(17,17,17,0.06)]"
           >
           {replays.map((replay) => {
             const isActive = replay.id === selectedReplay.id;
@@ -481,13 +481,13 @@ export default function SimulationReplay({ replays }: SimulationReplayProps) {
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => selectReplay(replay.id)}
-                className={`rounded-[18px] border px-4 py-3 text-center transition ${
+                className={`min-w-[7.5rem] whitespace-nowrap rounded-[18px] border px-4 py-2.5 text-center transition sm:min-w-[8.75rem] ${
                   isActive
                     ? "border-[var(--accent-deep)] bg-[var(--accent)]/18 text-[var(--ink)] shadow-[0_8px_24px_rgba(124,95,214,0.16)]"
                     : "border-black/10 bg-white/80 text-[var(--ink-mid)] hover:border-[var(--accent-deep)]/35 hover:text-[var(--ink)]"
                 }`}
               >
-                <div className="font-[family-name:var(--font-geist-pixel-square)] text-[11px]">
+                <div className="font-[family-name:var(--font-geist-pixel-square)] text-[10px] sm:text-[11px]">
                   {replay.label}
                 </div>
               </button>
