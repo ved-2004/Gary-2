@@ -2073,26 +2073,6 @@
     },
     {
       "world_grid_position": {
-        "x": 3,
-        "y": 2
-      },
-      "type": "shelf",
-      "product_ids": [
-        "PRD-022"
-      ]
-    },
-    {
-      "world_grid_position": {
-        "x": 3,
-        "y": 3
-      },
-      "type": "shelf",
-      "product_ids": [
-        "PRD-023"
-      ]
-    },
-    {
-      "world_grid_position": {
         "x": 5,
         "y": 4
       },
@@ -2746,6 +2726,58 @@
       },
       "type": "entrance",
       "product_ids": []
+    },
+    {
+      "world_grid_position": {
+        "x": 13,
+        "y": 5
+      },
+      "type": "shelf",
+      "product_ids": [
+        "PRD-029"
+      ]
+    },
+    {
+      "world_grid_position": {
+        "x": 14,
+        "y": 5
+      },
+      "type": "shelf",
+      "product_ids": [
+        "PRD-024"
+      ]
+    },
+    {
+      "world_grid_position": {
+        "x": 19,
+        "y": 14
+      },
+      "type": "shelf",
+      "product_ids": [
+        "PRD-018",
+        "PRD-017"
+      ]
+    },
+    {
+      "world_grid_position": {
+        "x": 20,
+        "y": 14
+      },
+      "type": "shelf",
+      "product_ids": [
+        "PRD-016",
+        "PRD-041"
+      ]
+    },
+    {
+      "world_grid_position": {
+        "x": 21,
+        "y": 14
+      },
+      "type": "shelf",
+      "product_ids": [
+        "PRD-103"
+      ]
     }
   ]
 }

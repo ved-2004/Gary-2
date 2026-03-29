@@ -1947,7 +1947,9 @@
         "y": -1
       },
       "type": "shelf",
-      "product_ids": []
+      "product_ids": [
+        "PRD-028"
+      ]
     },
     {
       "world_grid_position": {
@@ -2535,7 +2537,9 @@
         "y": 12
       },
       "type": "shelf",
-      "product_ids": []
+      "product_ids": [
+        "PRD-087"
+      ]
     },
     {
       "world_grid_position": {
