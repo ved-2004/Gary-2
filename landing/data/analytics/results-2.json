@@ -1,0 +1,1204 @@
+{
+  "agents": [
+    {
+      "name": "Olivia Turner",
+      "state": "checked_out",
+      "current_position": {
+        "x": 24,
+        "y": 13
+      },
+      "items_purchased": [
+        {
+          "product_id": "PRD-037",
+          "product_name": "Rice Cakes lightly salted",
+          "product_type": "snacks",
+          "company": "Puffed Purity",
+          "selling_price": 2.99,
+          "procurement_cost": 1.75,
+          "discount_percent": 0.0,
+          "margin_percent": 41.47,
+          "shelf_x": 16,
+          "shelf_y": 13
+        }
+      ],
+      "spend": 2.99,
+      "inventory": [],
+      "customer_id": "CUST001",
+      "completion_reason": "checked_out",
+      "iteration_count": 23,
+      "max_iterations": 200,
+      "unique_positions_visited": 22,
+      "shopping_targets": [
+        "Trail Mix 14 oz",
+        "Granola Bars 8ct",
+        "Rice Cakes lightly salted",
+        "Dish Soap 24 oz",
+        "All-Purpose Cleaner spray",
+        "Paper Towels 6 roll"
+      ],
+      "unavailable_targets": [],
+      "remaining_targets": [
+        "Trail Mix 14 oz",
+        "Granola Bars 8ct",
+        "Dish Soap 24 oz",
+        "All-Purpose Cleaner spray",
+        "Paper Towels 6 roll"
+      ],
+      "failure_count": 0,
+      "successful_action_count": 23,
+      "last_error": ""
+    },
+    {
+      "name": "William Davis",
+      "state": "checked_out",
+      "current_position": {
+        "x": 26,
+        "y": 10
+      },
+      "items_purchased": [
+        {
+          "product_id": "PRD-034",
+          "product_name": "Pretzels 16 oz",
+          "product_type": "snacks",
+          "company": "CrunchLane",
+          "selling_price": 3.79,
+          "procurement_cost": 2.2,
+          "discount_percent": 0.0,
+          "margin_percent": 41.95,
+          "shelf_x": 19,
+          "shelf_y": 11
+        }
+      ],
+      "spend": 3.79,
+      "inventory": [],
+      "customer_id": "CUST010",
+      "completion_reason": "checked_out",
+      "iteration_count": 34,
+      "max_iterations": 200,
+      "unique_positions_visited": 32,
+      "shopping_targets": [
+        "Trail Mix 14 oz",
+        "Granola Bars 8ct",
+        "Pretzels 16 oz",
+        "Sports Drink 8-pack",
+        "Cold Brew Coffee 32 oz"
+      ],
+      "unavailable_targets": [
+        "Sparkling Water 8-pack"
+      ],
+      "remaining_targets": [
+        "Trail Mix 14 oz",
+        "Granola Bars 8ct",
+        "Sports Drink 8-pack",
+        "Cold Brew Coffee 32 oz"
+      ],
+      "failure_count": 1,
+      "successful_action_count": 33,
+      "last_error": ""
+    },
+    {
+      "name": "Elijah Martinez",
+      "state": "checked_out",
+      "current_position": {
+        "x": 25,
+        "y": 9
+      },
+      "items_purchased": [
+        {
+          "product_id": "PRD-024",
+          "product_name": "Orange Juice 52 oz",
+          "product_type": "beverages",
+          "company": "Sunrise Citrus",
+          "selling_price": 4.99,
+          "procurement_cost": 3.15,
+          "discount_percent": 0.0,
+          "margin_percent": 36.87,
+          "shelf_x": 14,
+          "shelf_y": 5
+        }
+      ],
+      "spend": 4.99,
+      "inventory": [],
+      "customer_id": "CUST014",
+      "completion_reason": "checked_out",
+      "iteration_count": 37,
+      "max_iterations": 200,
+      "unique_positions_visited": 28,
+      "shopping_targets": [
+        "Chicken Nuggets 24 oz",
+        "Iced Tea gallon",
+        "Orange Juice 52 oz"
+      ],
+      "unavailable_targets": [
+        "Frozen Pizza cheese",
+        "Mixed Vegetables 12 oz",
+        "Sparkling Water 8-pack"
+      ],
+      "remaining_targets": [
+        "Chicken Nuggets 24 oz",
+        "Iced Tea gallon"
+      ],
+      "failure_count": 2,
+      "successful_action_count": 35,
+      "last_error": ""
+    },
+    {
+      "name": "Isabella Garcia",
+      "state": "checked_out",
+      "current_position": {
+        "x": 24,
+        "y": 10
+      },
+      "items_purchased": [
+        {
+          "product_id": "PRD-021",
+          "product_name": "Strawberries 1 lb",
+          "product_type": "produce",
+          "company": "Orchard Gate",
+          "selling_price": 4.99,
+          "procurement_cost": 3.25,
+          "discount_percent": 20.0,
+          "margin_percent": 18.59,
+          "shelf_x": 19,
+          "shelf_y": 10
+        },
+        {
+          "product_id": "PRD-017",
+          "product_name": "Honeycrisp Apples lb",
+          "product_type": "produce",
+          "company": "Orchard Gate",
+          "selling_price": 2.49,
+          "procurement_cost": 1.55,
+          "discount_percent": 0.0,
+          "margin_percent": 37.75,
+          "shelf_x": 19,
+          "shelf_y": 14
+        },
+        {
+          "product_id": "PRD-016",
+          "product_name": "Baby Spinach 5 oz",
+          "product_type": "produce",
+          "company": "Leaf & Root",
+          "selling_price": 3.49,
+          "procurement_cost": 2.1,
+          "discount_percent": 10.0,
+          "margin_percent": 33.14,
+          "shelf_x": 20,
+          "shelf_y": 14
+        },
+        {
+          "product_id": "PRD-037",
+          "product_name": "Rice Cakes lightly salted",
+          "product_type": "snacks",
+          "company": "Puffed Purity",
+          "selling_price": 2.99,
+          "procurement_cost": 1.75,
+          "discount_percent": 0.0,
+          "margin_percent": 41.47,
+          "shelf_x": 16,
+          "shelf_y": 13
+        }
+      ],
+      "spend": 13.96,
+      "inventory": [],
+      "customer_id": "CUST009",
+      "completion_reason": "checked_out",
+      "iteration_count": 42,
+      "max_iterations": 200,
+      "unique_positions_visited": 31,
+      "shopping_targets": [
+        "Baby Spinach 5 oz",
+        "Strawberries 1 lb",
+        "Honeycrisp Apples lb",
+        "All-Purpose Cleaner spray",
+        "Dish Soap 24 oz"
+      ],
+      "unavailable_targets": [
+        "Laundry Detergent 64 load"
+      ],
+      "remaining_targets": [
+        "All-Purpose Cleaner spray",
+        "Dish Soap 24 oz"
+      ],
+      "failure_count": 0,
+      "successful_action_count": 42,
+      "last_error": ""
+    },
+    {
+      "name": "Benjamin Lee",
+      "state": "checked_out",
+      "current_position": {
+        "x": 24,
+        "y": 10
+      },
+      "items_purchased": [
+        {
+          "product_id": "PRD-076",
+          "product_name": "Birthday Cake 8 inch",
+          "product_type": "bakery",
+          "company": "Patisserie Corner",
+          "selling_price": 24.99,
+          "procurement_cost": 14.5,
+          "discount_percent": 0.0,
+          "margin_percent": 41.98,
+          "shelf_x": 21,
+          "shelf_y": 9
+        }
+      ],
+      "spend": 24.99,
+      "inventory": [],
+      "customer_id": "CUST012",
+      "completion_reason": "checked_out",
+      "iteration_count": 45,
+      "max_iterations": 200,
+      "unique_positions_visited": 41,
+      "shopping_targets": [
+        "Coffee Ground 12 oz",
+        "Cold Brew Coffee 32 oz",
+        "AA Batteries 8-pack",
+        "All-Purpose Cleaner spray",
+        "Paper Towels 6 roll"
+      ],
+      "unavailable_targets": [
+        "Oats old-fashioned 42 oz"
+      ],
+      "remaining_targets": [
+        "Coffee Ground 12 oz",
+        "Cold Brew Coffee 32 oz",
+        "AA Batteries 8-pack",
+        "All-Purpose Cleaner spray",
+        "Paper Towels 6 roll"
+      ],
+      "failure_count": 0,
+      "successful_action_count": 45,
+      "last_error": ""
+    },
+    {
+      "name": "Noah Johnson",
+      "state": "checked_out",
+      "current_position": {
+        "x": 24,
+        "y": 12
+      },
+      "items_purchased": [
+        {
+          "product_id": "PRD-016",
+          "product_name": "Baby Spinach 5 oz",
+          "product_type": "produce",
+          "company": "Leaf & Root",
+          "selling_price": 3.49,
+          "procurement_cost": 2.1,
+          "discount_percent": 10.0,
+          "margin_percent": 33.14,
+          "shelf_x": 20,
+          "shelf_y": 14
+        },
+        {
+          "product_id": "PRD-037",
+          "product_name": "Rice Cakes lightly salted",
+          "product_type": "snacks",
+          "company": "Puffed Purity",
+          "selling_price": 2.99,
+          "procurement_cost": 1.75,
+          "discount_percent": 0.0,
+          "margin_percent": 41.47,
+          "shelf_x": 16,
+          "shelf_y": 13
+        },
+        {
+          "product_id": "PRD-095",
+          "product_name": "Instant Oatmeal 10-pack",
+          "product_type": "breakfast",
+          "company": "Morning Peak",
+          "selling_price": 4.99,
+          "procurement_cost": 2.95,
+          "discount_percent": 0.0,
+          "margin_percent": 40.88,
+          "shelf_x": 6,
+          "shelf_y": 9
+        },
+        {
+          "product_id": "PRD-019",
+          "product_name": "Carrots 2 lb bag",
+          "product_type": "produce",
+          "company": "Leaf & Root",
+          "selling_price": 1.99,
+          "procurement_cost": 1.05,
+          "discount_percent": 0.0,
+          "margin_percent": 47.24,
+          "shelf_x": 1,
+          "shelf_y": 9
+        }
+      ],
+      "spend": 13.46,
+      "inventory": [],
+      "customer_id": "CUST006",
+      "completion_reason": "checked_out",
+      "iteration_count": 63,
+      "max_iterations": 200,
+      "unique_positions_visited": 44,
+      "shopping_targets": [
+        "Carrots 2 lb bag",
+        "Baby Spinach 5 oz",
+        "Instant Oatmeal 10-pack"
+      ],
+      "unavailable_targets": [
+        "Broccoli crown lb",
+        "Granola clusters 12 oz",
+        "Oats old-fashioned 42 oz"
+      ],
+      "remaining_targets": [],
+      "failure_count": 0,
+      "successful_action_count": 63,
+      "last_error": ""
+    },
+    {
+      "name": "Emma Williams",
+      "state": "checked_out",
+      "current_position": {
+        "x": 25,
+        "y": 15
+      },
+      "items_purchased": [
+        {
+          "product_id": "PRD-069",
+          "product_name": "Trash Bags 13 gal 40ct",
+          "product_type": "household",
+          "company": "StrongHold",
+          "selling_price": 9.49,
+          "procurement_cost": 5.85,
+          "discount_percent": 0.0,
+          "margin_percent": 38.36,
+          "shelf_x": 9,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-036",
+          "product_name": "Popcorn microwave 3pk",
+          "product_type": "snacks",
+          "company": "Kernel King",
+          "selling_price": 3.99,
+          "procurement_cost": 2.35,
+          "discount_percent": 0.0,
+          "margin_percent": 41.1,
+          "shelf_x": 8,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-071",
+          "product_name": "AA Batteries 8-pack",
+          "product_type": "household",
+          "company": "VoltLine",
+          "selling_price": 7.99,
+          "procurement_cost": 4.9,
+          "discount_percent": 5.0,
+          "margin_percent": 35.45,
+          "shelf_x": 7,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-066",
+          "product_name": "Dish Soap 24 oz",
+          "product_type": "household",
+          "company": "SparkleHome",
+          "selling_price": 3.99,
+          "procurement_cost": 2.15,
+          "discount_percent": 0.0,
+          "margin_percent": 46.12,
+          "shelf_x": 6,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-067",
+          "product_name": "Paper Towels 6 roll",
+          "product_type": "household",
+          "company": "TimberTissue",
+          "selling_price": 8.99,
+          "procurement_cost": 5.7,
+          "discount_percent": 10.0,
+          "margin_percent": 29.55,
+          "shelf_x": 5,
+          "shelf_y": 13
+        },
+        {
+          "product_id": "PRD-070",
+          "product_name": "All-Purpose Cleaner spray",
+          "product_type": "household",
+          "company": "SparkleHome",
+          "selling_price": 4.49,
+          "procurement_cost": 2.55,
+          "discount_percent": 0.0,
+          "margin_percent": 43.21,
+          "shelf_x": 6,
+          "shelf_y": 13
+        }
+      ],
+      "spend": 38.94,
+      "inventory": [],
+      "customer_id": "CUST007",
+      "completion_reason": "checked_out",
+      "iteration_count": 66,
+      "max_iterations": 200,
+      "unique_positions_visited": 56,
+      "shopping_targets": [
+        "AA Batteries 8-pack",
+        "Paper Towels 6 roll",
+        "Trash Bags 13 gal 40ct",
+        "Dish Soap 24 oz",
+        "All-Purpose Cleaner spray"
+      ],
+      "unavailable_targets": [
+        "Laundry Detergent 64 load"
+      ],
+      "remaining_targets": [],
+      "failure_count": 2,
+      "successful_action_count": 64,
+      "last_error": ""
+    },
+    {
+      "name": "Charlotte Wilson",
+      "state": "checked_out",
+      "current_position": {
+        "x": 25,
+        "y": 9
+      },
+      "items_purchased": [
+        {
+          "product_id": "PRD-016",
+          "product_name": "Baby Spinach 5 oz",
+          "product_type": "produce",
+          "company": "Leaf & Root",
+          "selling_price": 3.49,
+          "procurement_cost": 2.1,
+          "discount_percent": 10.0,
+          "margin_percent": 33.14,
+          "shelf_x": 20,
+          "shelf_y": 14
+        },
+        {
+          "product_id": "PRD-018",
+          "product_name": "Avocado each",
+          "product_type": "produce",
+          "company": "TropicSource",
+          "selling_price": 1.29,
+          "procurement_cost": 0.78,
+          "discount_percent": 0.0,
+          "margin_percent": 39.53,
+          "shelf_x": 19,
+          "shelf_y": 14
+        },
+        {
+          "product_id": "PRD-021",
+          "product_name": "Strawberries 1 lb",
+          "product_type": "produce",
+          "company": "Orchard Gate",
+          "selling_price": 4.99,
+          "procurement_cost": 3.25,
+          "discount_percent": 20.0,
+          "margin_percent": 18.59,
+          "shelf_x": 19,
+          "shelf_y": 10
+        },
+        {
+          "product_id": "PRD-099",
+          "product_name": "Swiss Cheese sliced lb",
+          "product_type": "deli",
+          "company": "Del Romano Meats",
+          "selling_price": 10.99,
+          "procurement_cost": 7.1,
+          "discount_percent": 0.0,
+          "margin_percent": 35.4,
+          "shelf_x": 7,
+          "shelf_y": 9
+        },
+        {
+          "product_id": "PRD-102",
+          "product_name": "Rotisserie Chicken whole",
+          "product_type": "deli",
+          "company": "Valley Hen Ranch",
+          "selling_price": 8.99,
+          "procurement_cost": 4.85,
+          "discount_percent": 0.0,
+          "margin_percent": 46.05,
+          "shelf_x": 5,
+          "shelf_y": 4
+        },
+        {
+          "product_id": "PRD-105",
+          "product_name": "Roast Beef sliced lb",
+          "product_type": "deli",
+          "company": "Grassland Prime",
+          "selling_price": 13.99,
+          "procurement_cost": 9.1,
+          "discount_percent": 0.0,
+          "margin_percent": 34.95,
+          "shelf_x": 6,
+          "shelf_y": 5
+        }
+      ],
+      "spend": 43.74,
+      "inventory": [],
+      "customer_id": "CUST013",
+      "completion_reason": "checked_out",
+      "iteration_count": 82,
+      "max_iterations": 200,
+      "unique_positions_visited": 65,
+      "shopping_targets": [
+        "Rotisserie Chicken whole",
+        "Roast Beef sliced lb",
+        "Swiss Cheese sliced lb",
+        "Baby Spinach 5 oz",
+        "Strawberries 1 lb",
+        "Avocado each"
+      ],
+      "unavailable_targets": [],
+      "remaining_targets": [],
+      "failure_count": 2,
+      "successful_action_count": 80,
+      "last_error": ""
+    },
+    {
+      "name": "Liam Brown",
+      "state": "checked_out",
+      "current_position": {
+        "x": 25,
+        "y": 15
+      },
+      "items_purchased": [
+        {
+          "product_id": "PRD-041",
+          "product_name": "Chicken Nuggets 24 oz",
+          "product_type": "frozen",
+          "company": "North Pole Kitchens",
+          "selling_price": 8.99,
+          "procurement_cost": 5.75,
+          "discount_percent": 0.0,
+          "margin_percent": 36.04,
+          "shelf_x": 7,
+          "shelf_y": 5
+        },
+        {
+          "product_id": "PRD-072",
+          "product_name": "Facial Tissue 3-box",
+          "product_type": "household",
+          "company": "TimberTissue",
+          "selling_price": 5.49,
+          "procurement_cost": 3.25,
+          "discount_percent": 0.0,
+          "margin_percent": 40.8,
+          "shelf_x": 5,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-067",
+          "product_name": "Paper Towels 6 roll",
+          "product_type": "household",
+          "company": "TimberTissue",
+          "selling_price": 8.99,
+          "procurement_cost": 5.7,
+          "discount_percent": 10.0,
+          "margin_percent": 29.55,
+          "shelf_x": 9,
+          "shelf_y": 13
+        },
+        {
+          "product_id": "PRD-070",
+          "product_name": "All-Purpose Cleaner spray",
+          "product_type": "household",
+          "company": "SparkleHome",
+          "selling_price": 4.49,
+          "procurement_cost": 2.55,
+          "discount_percent": 0.0,
+          "margin_percent": 43.21,
+          "shelf_x": 7,
+          "shelf_y": 13
+        }
+      ],
+      "spend": 27.96,
+      "inventory": [],
+      "customer_id": "CUST008",
+      "completion_reason": "checked_out",
+      "iteration_count": 80,
+      "max_iterations": 200,
+      "unique_positions_visited": 65,
+      "shopping_targets": [
+        "Facial Tissue 3-box",
+        "Paper Towels 6 roll",
+        "All-Purpose Cleaner spray",
+        "Chicken Nuggets 24 oz"
+      ],
+      "unavailable_targets": [
+        "Frozen Pizza cheese",
+        "Waffles 10ct"
+      ],
+      "remaining_targets": [],
+      "failure_count": 5,
+      "successful_action_count": 75,
+      "last_error": ""
+    },
+    {
+      "name": "James Carter",
+      "state": "checked_out",
+      "current_position": {
+        "x": 25,
+        "y": 15
+      },
+      "items_purchased": [
+        {
+          "product_id": "PRD-010",
+          "product_name": "Bagels 6-pack plain",
+          "product_type": "bread",
+          "company": "Metro Bagel",
+          "selling_price": 4.29,
+          "procurement_cost": 2.55,
+          "discount_percent": 5.0,
+          "margin_percent": 37.43,
+          "shelf_x": 14,
+          "shelf_y": 1
+        },
+        {
+          "product_id": "PRD-069",
+          "product_name": "Trash Bags 13 gal 40ct",
+          "product_type": "household",
+          "company": "StrongHold",
+          "selling_price": 9.49,
+          "procurement_cost": 5.85,
+          "discount_percent": 0.0,
+          "margin_percent": 38.36,
+          "shelf_x": 9,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-071",
+          "product_name": "AA Batteries 8-pack",
+          "product_type": "household",
+          "company": "VoltLine",
+          "selling_price": 7.99,
+          "procurement_cost": 4.9,
+          "discount_percent": 5.0,
+          "margin_percent": 35.45,
+          "shelf_x": 7,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-066",
+          "product_name": "Dish Soap 24 oz",
+          "product_type": "household",
+          "company": "SparkleHome",
+          "selling_price": 3.99,
+          "procurement_cost": 2.15,
+          "discount_percent": 0.0,
+          "margin_percent": 46.12,
+          "shelf_x": 6,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-072",
+          "product_name": "Facial Tissue 3-box",
+          "product_type": "household",
+          "company": "TimberTissue",
+          "selling_price": 5.49,
+          "procurement_cost": 3.25,
+          "discount_percent": 0.0,
+          "margin_percent": 40.8,
+          "shelf_x": 5,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-067",
+          "product_name": "Paper Towels 6 roll",
+          "product_type": "household",
+          "company": "TimberTissue",
+          "selling_price": 8.99,
+          "procurement_cost": 5.7,
+          "discount_percent": 10.0,
+          "margin_percent": 29.55,
+          "shelf_x": 9,
+          "shelf_y": 13
+        },
+        {
+          "product_id": "PRD-070",
+          "product_name": "All-Purpose Cleaner spray",
+          "product_type": "household",
+          "company": "SparkleHome",
+          "selling_price": 4.49,
+          "procurement_cost": 2.55,
+          "discount_percent": 0.0,
+          "margin_percent": 43.21,
+          "shelf_x": 7,
+          "shelf_y": 13
+        }
+      ],
+      "spend": 44.730000000000004,
+      "inventory": [],
+      "customer_id": "CUST002",
+      "completion_reason": "checked_out",
+      "iteration_count": 108,
+      "max_iterations": 200,
+      "unique_positions_visited": 70,
+      "shopping_targets": [
+        "AA Batteries 8-pack",
+        "Paper Towels 6 roll",
+        "Facial Tissue 3-box",
+        "Trash Bags 13 gal 40ct",
+        "All-Purpose Cleaner spray"
+      ],
+      "unavailable_targets": [
+        "Laundry Detergent 64 load"
+      ],
+      "remaining_targets": [],
+      "failure_count": 5,
+      "successful_action_count": 103,
+      "last_error": ""
+    },
+    {
+      "name": "Ava Patel",
+      "state": "checked_out",
+      "current_position": {
+        "x": 25,
+        "y": 15
+      },
+      "items_purchased": [
+        {
+          "product_id": "PRD-066",
+          "product_name": "Dish Soap 24 oz",
+          "product_type": "household",
+          "company": "SparkleHome",
+          "selling_price": 3.99,
+          "procurement_cost": 2.15,
+          "discount_percent": 0.0,
+          "margin_percent": 46.12,
+          "shelf_x": 6,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-095",
+          "product_name": "Instant Oatmeal 10-pack",
+          "product_type": "breakfast",
+          "company": "Morning Peak",
+          "selling_price": 4.99,
+          "procurement_cost": 2.95,
+          "discount_percent": 0.0,
+          "margin_percent": 40.88,
+          "shelf_x": 6,
+          "shelf_y": 9
+        },
+        {
+          "product_id": "PRD-072",
+          "product_name": "Facial Tissue 3-box",
+          "product_type": "household",
+          "company": "TimberTissue",
+          "selling_price": 5.49,
+          "procurement_cost": 3.25,
+          "discount_percent": 0.0,
+          "margin_percent": 40.8,
+          "shelf_x": 5,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-070",
+          "product_name": "All-Purpose Cleaner spray",
+          "product_type": "household",
+          "company": "SparkleHome",
+          "selling_price": 4.49,
+          "procurement_cost": 2.55,
+          "discount_percent": 0.0,
+          "margin_percent": 43.21,
+          "shelf_x": 6,
+          "shelf_y": 13
+        }
+      ],
+      "spend": 18.96,
+      "inventory": [],
+      "customer_id": "CUST005",
+      "completion_reason": "checked_out",
+      "iteration_count": 106,
+      "max_iterations": 200,
+      "unique_positions_visited": 94,
+      "shopping_targets": [
+        "Facial Tissue 3-box",
+        "Dish Soap 24 oz",
+        "All-Purpose Cleaner spray",
+        "Instant Oatmeal 10-pack"
+      ],
+      "unavailable_targets": [
+        "Oats old-fashioned 42 oz",
+        "Granola clusters 12 oz"
+      ],
+      "remaining_targets": [],
+      "failure_count": 2,
+      "successful_action_count": 104,
+      "last_error": ""
+    },
+    {
+      "name": "Amelia Thompson",
+      "state": "checked_out",
+      "current_position": {
+        "x": 24,
+        "y": 12
+      },
+      "items_purchased": [
+        {
+          "product_id": "PRD-072",
+          "product_name": "Facial Tissue 3-box",
+          "product_type": "household",
+          "company": "TimberTissue",
+          "selling_price": 5.49,
+          "procurement_cost": 3.25,
+          "discount_percent": 0.0,
+          "margin_percent": 40.8,
+          "shelf_x": 5,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-067",
+          "product_name": "Paper Towels 6 roll",
+          "product_type": "household",
+          "company": "TimberTissue",
+          "selling_price": 8.99,
+          "procurement_cost": 5.7,
+          "discount_percent": 10.0,
+          "margin_percent": 29.55,
+          "shelf_x": 5,
+          "shelf_y": 13
+        },
+        {
+          "product_id": "PRD-017",
+          "product_name": "Honeycrisp Apples lb",
+          "product_type": "produce",
+          "company": "Orchard Gate",
+          "selling_price": 2.49,
+          "procurement_cost": 1.55,
+          "discount_percent": 0.0,
+          "margin_percent": 37.75,
+          "shelf_x": 1,
+          "shelf_y": 14
+        },
+        {
+          "product_id": "PRD-070",
+          "product_name": "All-Purpose Cleaner spray",
+          "product_type": "household",
+          "company": "SparkleHome",
+          "selling_price": 4.49,
+          "procurement_cost": 2.55,
+          "discount_percent": 0.0,
+          "margin_percent": 43.21,
+          "shelf_x": 6,
+          "shelf_y": 13
+        },
+        {
+          "product_id": "PRD-069",
+          "product_name": "Trash Bags 13 gal 40ct",
+          "product_type": "household",
+          "company": "StrongHold",
+          "selling_price": 9.49,
+          "procurement_cost": 5.85,
+          "discount_percent": 0.0,
+          "margin_percent": 38.36,
+          "shelf_x": 8,
+          "shelf_y": 13
+        },
+        {
+          "product_id": "PRD-016",
+          "product_name": "Baby Spinach 5 oz",
+          "product_type": "produce",
+          "company": "Leaf & Root",
+          "selling_price": 3.49,
+          "procurement_cost": 2.1,
+          "discount_percent": 10.0,
+          "margin_percent": 33.14,
+          "shelf_x": 1,
+          "shelf_y": 7
+        }
+      ],
+      "spend": 34.44,
+      "inventory": [],
+      "customer_id": "CUST015",
+      "completion_reason": "checked_out",
+      "iteration_count": 109,
+      "max_iterations": 200,
+      "unique_positions_visited": 90,
+      "shopping_targets": [
+        "Baby Spinach 5 oz",
+        "Honeycrisp Apples lb",
+        "Paper Towels 6 roll",
+        "Trash Bags 13 gal 40ct",
+        "All-Purpose Cleaner spray"
+      ],
+      "unavailable_targets": [
+        "Broccoli crown lb"
+      ],
+      "remaining_targets": [],
+      "failure_count": 2,
+      "successful_action_count": 107,
+      "last_error": ""
+    },
+    {
+      "name": "Michael Rivera",
+      "state": "checked_out",
+      "current_position": {
+        "x": 25,
+        "y": 15
+      },
+      "items_purchased": [
+        {
+          "product_id": "PRD-024",
+          "product_name": "Orange Juice 52 oz",
+          "product_type": "beverages",
+          "company": "Sunrise Citrus",
+          "selling_price": 4.99,
+          "procurement_cost": 3.15,
+          "discount_percent": 0.0,
+          "margin_percent": 36.87,
+          "shelf_x": 14,
+          "shelf_y": 5
+        },
+        {
+          "product_id": "PRD-072",
+          "product_name": "Facial Tissue 3-box",
+          "product_type": "household",
+          "company": "TimberTissue",
+          "selling_price": 5.49,
+          "procurement_cost": 3.25,
+          "discount_percent": 0.0,
+          "margin_percent": 40.8,
+          "shelf_x": 5,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-066",
+          "product_name": "Dish Soap 24 oz",
+          "product_type": "household",
+          "company": "SparkleHome",
+          "selling_price": 3.99,
+          "procurement_cost": 2.15,
+          "discount_percent": 0.0,
+          "margin_percent": 46.12,
+          "shelf_x": 6,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-070",
+          "product_name": "All-Purpose Cleaner spray",
+          "product_type": "household",
+          "company": "SparkleHome",
+          "selling_price": 4.49,
+          "procurement_cost": 2.55,
+          "discount_percent": 0.0,
+          "margin_percent": 43.21,
+          "shelf_x": 6,
+          "shelf_y": 13
+        },
+        {
+          "product_id": "PRD-045",
+          "product_name": "Long Grain Rice 2 lb",
+          "product_type": "pantry",
+          "company": "Fieldstone Mills",
+          "selling_price": 3.29,
+          "procurement_cost": 1.95,
+          "discount_percent": 0.0,
+          "margin_percent": 40.73,
+          "shelf_x": 14,
+          "shelf_y": 13
+        },
+        {
+          "product_id": "PRD-046",
+          "product_name": "Penne Pasta 16 oz",
+          "product_type": "pantry",
+          "company": "Nonna's Table",
+          "selling_price": 1.99,
+          "procurement_cost": 1.1,
+          "discount_percent": 0.0,
+          "margin_percent": 44.72,
+          "shelf_x": 15,
+          "shelf_y": 13
+        }
+      ],
+      "spend": 24.240000000000002,
+      "inventory": [],
+      "customer_id": "CUST004",
+      "completion_reason": "checked_out",
+      "iteration_count": 131,
+      "max_iterations": 200,
+      "unique_positions_visited": 108,
+      "shopping_targets": [
+        "Long Grain Rice 2 lb",
+        "Penne Pasta 16 oz",
+        "Facial Tissue 3-box",
+        "All-Purpose Cleaner spray",
+        "Dish Soap 24 oz"
+      ],
+      "unavailable_targets": [
+        "Chicken Broth 32 oz"
+      ],
+      "remaining_targets": [],
+      "failure_count": 6,
+      "successful_action_count": 125,
+      "last_error": ""
+    },
+    {
+      "name": "Sophia Nguyen",
+      "state": "checked_out",
+      "current_position": {
+        "x": 24,
+        "y": 13
+      },
+      "items_purchased": [
+        {
+          "product_id": "PRD-016",
+          "product_name": "Baby Spinach 5 oz",
+          "product_type": "produce",
+          "company": "Leaf & Root",
+          "selling_price": 3.49,
+          "procurement_cost": 2.1,
+          "discount_percent": 10.0,
+          "margin_percent": 33.14,
+          "shelf_x": 1,
+          "shelf_y": 7
+        },
+        {
+          "product_id": "PRD-072",
+          "product_name": "Facial Tissue 3-box",
+          "product_type": "household",
+          "company": "TimberTissue",
+          "selling_price": 5.49,
+          "procurement_cost": 3.25,
+          "discount_percent": 0.0,
+          "margin_percent": 40.8,
+          "shelf_x": 5,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-066",
+          "product_name": "Dish Soap 24 oz",
+          "product_type": "household",
+          "company": "SparkleHome",
+          "selling_price": 3.99,
+          "procurement_cost": 2.15,
+          "discount_percent": 0.0,
+          "margin_percent": 46.12,
+          "shelf_x": 6,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-017",
+          "product_name": "Honeycrisp Apples lb",
+          "product_type": "produce",
+          "company": "Orchard Gate",
+          "selling_price": 2.49,
+          "procurement_cost": 1.55,
+          "discount_percent": 0.0,
+          "margin_percent": 37.75,
+          "shelf_x": 19,
+          "shelf_y": 14
+        }
+      ],
+      "spend": 15.46,
+      "inventory": [],
+      "customer_id": "CUST003",
+      "completion_reason": "checked_out",
+      "iteration_count": 134,
+      "max_iterations": 200,
+      "unique_positions_visited": 115,
+      "shopping_targets": [
+        "Baby Spinach 5 oz",
+        "Honeycrisp Apples lb",
+        "Facial Tissue 3-box",
+        "Dish Soap 24 oz",
+        "Paper Towels 6 roll"
+      ],
+      "unavailable_targets": [
+        "Broccoli crown lb"
+      ],
+      "remaining_targets": [
+        "Paper Towels 6 roll"
+      ],
+      "failure_count": 4,
+      "successful_action_count": 130,
+      "last_error": ""
+    },
+    {
+      "name": "Mia Hernandez",
+      "state": "checked_out",
+      "current_position": {
+        "x": 24,
+        "y": 12
+      },
+      "items_purchased": [
+        {
+          "product_id": "PRD-072",
+          "product_name": "Facial Tissue 3-box",
+          "product_type": "household",
+          "company": "TimberTissue",
+          "selling_price": 5.49,
+          "procurement_cost": 3.25,
+          "discount_percent": 0.0,
+          "margin_percent": 40.8,
+          "shelf_x": 5,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-066",
+          "product_name": "Dish Soap 24 oz",
+          "product_type": "household",
+          "company": "SparkleHome",
+          "selling_price": 3.99,
+          "procurement_cost": 2.15,
+          "discount_percent": 0.0,
+          "margin_percent": 46.12,
+          "shelf_x": 6,
+          "shelf_y": 12
+        },
+        {
+          "product_id": "PRD-067",
+          "product_name": "Paper Towels 6 roll",
+          "product_type": "household",
+          "company": "TimberTissue",
+          "selling_price": 8.99,
+          "procurement_cost": 5.7,
+          "discount_percent": 10.0,
+          "margin_percent": 29.55,
+          "shelf_x": 5,
+          "shelf_y": 13
+        },
+        {
+          "product_id": "PRD-021",
+          "product_name": "Strawberries 1 lb",
+          "product_type": "produce",
+          "company": "Orchard Gate",
+          "selling_price": 4.99,
+          "procurement_cost": 3.25,
+          "discount_percent": 20.0,
+          "margin_percent": 18.59,
+          "shelf_x": 1,
+          "shelf_y": 13
+        }
+      ],
+      "spend": 23.46,
+      "inventory": [],
+      "customer_id": "CUST011",
+      "completion_reason": "checked_out",
+      "iteration_count": 153,
+      "max_iterations": 200,
+      "unique_positions_visited": 131,
+      "shopping_targets": [
+        "Long Grain Rice 2 lb",
+        "Penne Pasta 16 oz",
+        "Paper Towels 6 roll",
+        "Facial Tissue 3-box",
+        "Dish Soap 24 oz"
+      ],
+      "unavailable_targets": [
+        "Beans black 15 oz can"
+      ],
+      "remaining_targets": [
+        "Long Grain Rice 2 lb",
+        "Penne Pasta 16 oz"
+      ],
+      "failure_count": 4,
+      "successful_action_count": 149,
+      "last_error": ""
+    }
+  ],
+  "total_revenue": 336.11
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useEffectEvent, useId, useState } from "react";
+import SimulationAnalyticsDashboard from "@/components/SimulationAnalyticsDashboard";
 import type {
   ReplayAgent,
   ReplayBounds,
@@ -9,6 +10,7 @@ import type {
   ReplayShelf,
   ReplayTrajectory,
 } from "@/lib/replay";
+import type { SimulationResultsDataset } from "@/lib/simulation-results";
 import { getProductImagePath } from "@/lib/product-images";
 import {
   formatCompletionReason,
@@ -23,6 +25,7 @@ export interface ReplayCatalogEntry {
   id: string;
   label: string;
   trajectory: ReplayTrajectory;
+  results?: SimulationResultsDataset | null;
 }
 
 interface SimulationReplayProps {
@@ -1158,6 +1161,11 @@ export default function SimulationReplay({ replays }: SimulationReplayProps) {
           </div>
         </aside>
       </div>
+
+      <SimulationAnalyticsDashboard
+        replays={replays}
+        currency={trajectory.layout.currency}
+      />
     </div>
   );
 }
