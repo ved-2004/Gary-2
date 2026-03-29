@@ -1,7 +1,6 @@
 import { MongoClient } from "mongodb";
 
 declare global {
-  // eslint-disable-next-line no-var -- required for HMR-safe singleton
   var _reanimateMongoClient: Promise<MongoClient> | undefined;
 }
 

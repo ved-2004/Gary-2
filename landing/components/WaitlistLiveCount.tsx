@@ -16,19 +16,20 @@ export default function WaitlistLiveCount({
 }: {
   className?: string;
 }) {
-  const [mounted, setMounted] = useState(false);
   const [count, setCount] = useState<number | null>(null);
   const [settled, setSettled] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const r = await fetch("/api/waitlist/count", { cache: "no-store" });
-      const data = (await r.json()) as { count?: number; error?: string };
+      const response = await fetch("/api/waitlist/count", { cache: "no-store" });
+      const data = (await response.json()) as { count?: number; error?: string };
       setSettled(true);
-      if (r.ok && typeof data.count === "number") {
+
+      if (response.ok && typeof data.count === "number") {
         setCount(data.count);
         return;
       }
+
       setCount(null);
     } catch {
       setSettled(true);
@@ -37,37 +38,29 @@ export default function WaitlistLiveCount({
   }, []);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-    load();
-    const interval = setInterval(load, POLL_MS);
+    const kickoff = window.setTimeout(() => {
+      void load();
+    }, 0);
+    const interval = window.setInterval(() => {
+      void load();
+    }, POLL_MS);
     const onRefresh = () => {
-      load();
+      void load();
     };
+
     window.addEventListener(REFRESH_EVENT, onRefresh);
     return () => {
-      clearInterval(interval);
+      window.clearTimeout(kickoff);
+      window.clearInterval(interval);
       window.removeEventListener(REFRESH_EVENT, onRefresh);
     };
-  }, [mounted, load]);
+  }, [load]);
 
   const outerClass = `inline-flex items-center justify-center font-[family-name:var(--px)] text-[11px] text-[var(--ink-mid)] ${className}`;
 
-  /* SSR + first client paint: identical markup (no fetch, no client-only branches). */
-  if (!mounted) {
-    return (
-      <span className={outerClass} aria-busy="true" aria-label="Loading waitlist count">
-        <span className="opacity-50">…</span>
-      </span>
-    );
-  }
-
   let label: ReactNode;
   if (!settled) {
-    label = <span className="opacity-50">…</span>;
+    label = <span className="opacity-50">...</span>;
   } else if (count === null) {
     label = <span>Add your email below to join the waitlist.</span>;
   } else if (count === 0) {

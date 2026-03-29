@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useEffectEvent, useId, useState } from "react";
 import { dispatchWaitlistCountRefresh } from "@/components/WaitlistLiveCount";
 
 type WaitlistModalProps = {
@@ -19,24 +19,31 @@ export default function WaitlistModal({ open, onClose }: WaitlistModalProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const [alreadyMessage, setAlreadyMessage] = useState("");
 
+  function resetForm() {
+    setName("");
+    setEmail("");
+    setMessage("");
+    setStatus("idle");
+    setErrorMessage("");
+    setAlreadyMessage("");
+  }
+
+  function handleClose() {
+    resetForm();
+    onClose();
+  }
+
+  const onEscape = useEffectEvent(() => {
+    handleClose();
+  });
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onEscape();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
-  useEffect(() => {
-    if (!open) {
-      setName("");
-      setEmail("");
-      setMessage("");
-      setStatus("idle");
-      setErrorMessage("");
-      setAlreadyMessage("");
-    }
   }, [open]);
 
   if (!open) return null;
@@ -85,7 +92,7 @@ export default function WaitlistModal({ open, onClose }: WaitlistModalProps) {
         type="button"
         className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
         aria-label="Close dialog"
-        onClick={onClose}
+        onClick={handleClose}
       />
       <div
         role="dialog"
@@ -95,7 +102,7 @@ export default function WaitlistModal({ open, onClose }: WaitlistModalProps) {
       >
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute right-4 top-4 font-[family-name:var(--px)] text-[11px] text-[var(--ink-mid)] hover:text-[var(--ink)]"
         >
           Close
@@ -114,7 +121,7 @@ export default function WaitlistModal({ open, onClose }: WaitlistModalProps) {
             </p>
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="mt-8 font-[family-name:var(--px)] text-[12px] text-white bg-[var(--ink)] px-8 py-3 rounded-full hover:bg-[var(--accent-deep)] transition-colors"
             >
               Done
@@ -133,7 +140,7 @@ export default function WaitlistModal({ open, onClose }: WaitlistModalProps) {
             </p>
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="mt-8 font-[family-name:var(--px)] text-[12px] text-white bg-[var(--ink)] px-8 py-3 rounded-full hover:bg-[var(--accent-deep)] transition-colors"
             >
               Got it
